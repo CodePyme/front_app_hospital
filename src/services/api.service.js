@@ -14,8 +14,8 @@ const clienteApi = axios.create({
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
-    // En desarrollo, enviamos el dominio del tenant simulado
-    ...(isLocalhost ? { 'X-Tenant-Domain': import.meta.env.VITE_TENANT_DOMAIN || 'localhost' } : {}),
+    // Enviamos el dominio del tenant explícitamente al backend
+    'X-Tenant-Domain': isLocalhost ? (import.meta.env.VITE_TENANT_DOMAIN || 'localhost') : hostname,
   },
 })
 
