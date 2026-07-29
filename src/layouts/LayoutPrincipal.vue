@@ -68,13 +68,13 @@
     <!-- Barra superior -->
     <v-app-bar color="background" elevation="0" class="px-2 px-md-4">
       <template v-slot:prepend>
-        <v-app-bar-nav-icon color="primary" class="d-lg-none" @click="cajoneAbierto = !cajoneAbierto"></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon aria-label="Abrir menú de navegación" color="primary" class="d-lg-none" @click="cajoneAbierto = !cajoneAbierto"></v-app-bar-nav-icon>
       </template>
 
       <template v-slot:append>
         <div class="d-flex align-center gap-2 gap-md-4">
           <!-- Botón notificaciones -->
-          <v-btn icon color="grey-darken-2" variant="text">
+          <v-btn icon aria-label="Ver notificaciones" color="grey-darken-2" variant="text">
             <v-badge color="secondary" content="2" dot>
               <v-icon size="28">mdi-bell-outline</v-icon>
             </v-badge>

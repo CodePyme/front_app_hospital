@@ -1,8 +1,7 @@
 <template>
   <LayoutPrincipal>
-    <!-- Cabecera -->
     <div class="mb-6 mt-2">
-      <h2 class="text-h4 font-weight-bold text-primary mb-1">¡Hola, {{ almacenAuth.usuario?.nombres.split(' ')[0] }}!</h2>
+      <h1 class="text-h4 font-weight-bold text-primary mb-1">¡Hola, {{ almacenAuth.usuario?.nombres.split(' ')[0] }}!</h1>
       <p class="text-grey-darken-1 text-body-1">Bienvenido a tu portal de servicios de salud</p>
     </div>
 
@@ -10,10 +9,10 @@
     <v-card class="mb-8 overflow-hidden position-relative" rounded="xl" color="#f4f9f1" elevation="0" style="border: 1px solid #e2ebd9;">
       <v-row no-gutters>
         <v-col cols="12" md="6" class="pa-8 d-flex flex-column justify-center z-index-1">
-          <h1 class="text-h4 text-md-h3 font-weight-bold mb-2 text-primary" style="line-height: 1.2;">
+          <h2 class="text-h4 text-md-h3 font-weight-bold mb-2 text-primary" style="line-height: 1.2;">
             Tu salud, <br />
             <span class="text-secondary">nuestra prioridad</span>
-          </h1>
+          </h2>
           <p class="text-body-1 text-grey-darken-2 mb-6 mt-2 pr-md-4">
             Accede fácilmente a tus citas, resultados, información médica y más servicios en un solo lugar.
           </p>
@@ -37,7 +36,7 @@
     </v-card>
 
     <!-- Accesos rápidos -->
-    <h3 class="text-h6 font-weight-bold text-primary mb-4">Accesos rápidos</h3>
+    <h2 class="text-h6 font-weight-bold text-primary mb-4">Accesos rápidos</h2>
     <v-row class="mb-8">
       <v-col cols="12" sm="6" md="3" v-for="acceso in accesosRapidos" :key="acceso.titulo">
         <v-card :to="acceso.ruta" class="h-100 acceso-card border transition-swing" elevation="0" rounded="xl">
@@ -59,7 +58,7 @@
       <!-- Próxima Cita -->
       <v-col cols="12" md="6">
         <div class="d-flex justify-space-between align-center mb-4">
-          <h3 class="text-h6 font-weight-bold text-primary">Próxima cita</h3>
+          <h2 class="text-h6 font-weight-bold text-primary">Próxima cita</h2>
           <v-btn variant="text" color="primary" size="small" class="text-none font-weight-bold">Ver todas</v-btn>
         </div>
         <v-card elevation="0" rounded="xl" class="border pa-6 h-100 d-flex align-center">
@@ -97,7 +96,7 @@
       <!-- Notificaciones -->
       <v-col cols="12" md="6">
         <div class="d-flex justify-space-between align-center mb-4">
-          <h3 class="text-h6 font-weight-bold text-primary">Notificaciones</h3>
+          <h2 class="text-h6 font-weight-bold text-primary">Notificaciones</h2>
           <v-btn variant="text" color="primary" size="small" class="text-none font-weight-bold">Ver todas</v-btn>
         </div>
         <v-card elevation="0" rounded="xl" class="border pa-2 h-100">

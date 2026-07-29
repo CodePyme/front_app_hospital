@@ -113,7 +113,7 @@
                   <v-chip :color="colorEstado(proximaCita.estado)" size="small" class="font-weight-bold text-uppercase px-4 mb-sm-2">
                     {{ proximaCita.estado }}
                   </v-chip>
-                  <v-btn icon="mdi-dots-vertical" variant="text" color="grey-darken-1" size="small"></v-btn>
+                  <v-btn icon="mdi-dots-vertical" aria-label="Más opciones" variant="text" color="grey-darken-1" size="small"></v-btn>
                 </div>
               </div>
             </v-card>
@@ -157,7 +157,7 @@
                   <v-chip :color="colorEstado(cita.estado)" size="small" variant="tonal" class="font-weight-bold text-uppercase px-3">
                     {{ cita.estado }}
                   </v-chip>
-                  <v-btn icon="mdi-chevron-right" variant="text" color="grey-darken-1" size="small"></v-btn>
+                  <v-btn icon="mdi-chevron-right" aria-label="Ver detalle de cita" variant="text" color="grey-darken-1" size="small"></v-btn>
                 </div>
               </div>
             </v-card>
