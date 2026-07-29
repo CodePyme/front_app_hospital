@@ -1,13 +1,13 @@
 <template>
   <LayoutPrincipal>
     <!-- Controles superiores -->
-    <div class="d-flex align-center justify-space-between mb-6 border-b pb-4">
-      <div class="d-flex gap-4">
+    <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between mb-6 border-b pb-4 gap-4">
+      <div class="d-flex flex-wrap gap-4">
         <div class="text-subtitle-1 font-weight-bold text-primary border-b-primary pb-1" style="border-bottom: 3px solid rgb(var(--v-theme-primary));">Mis citas</div>
         <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary">Agendar cita</div>
         <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary">Historial de citas</div>
       </div>
-      <v-btn color="secondary" rounded="pill" class="text-primary font-weight-bold px-6 text-none" prepend-icon="mdi-plus" elevation="0" @click="abrirDialogoCrear">
+      <v-btn color="secondary" rounded="pill" class="text-primary font-weight-bold px-6 text-none w-100 w-sm-auto" prepend-icon="mdi-plus" elevation="0" @click="abrirDialogoCrear">
         Agendar nueva cita
       </v-btn>
     </div>
@@ -84,8 +84,8 @@
               </div>
 
               <!-- Bloque Detalles -->
-              <div class="d-flex align-center flex-grow-1 pa-5 bg-white">
-                <v-avatar color="green-lighten-5" size="64" class="mr-5 border-secondary">
+              <div class="d-flex flex-column flex-sm-row align-start align-sm-center flex-grow-1 pa-5 bg-white gap-4">
+                <v-avatar color="green-lighten-5" size="64" class="mr-sm-5 border-secondary d-none d-sm-flex">
                   <v-icon color="secondary" size="32">mdi-calendar-clock</v-icon>
                 </v-avatar>
                 
@@ -93,7 +93,7 @@
                   <div class="text-subtitle-1 font-weight-bold text-primary lh-1 mb-1">{{ proximaCita.especialidad || (proximaCita.tipoCita ? proximaCita.tipoCita.replace('_', ' ') : 'Consulta General') }}</div>
                   <div class="text-body-2 text-grey-darken-3 mb-2">{{ proximaCita.medicoResponsable || 'Médico por asignar' }}</div>
                   
-                  <div class="d-flex align-center gap-4 text-caption text-grey-darken-1 font-weight-medium">
+                  <div class="d-flex flex-wrap align-center gap-4 text-caption text-grey-darken-1 font-weight-medium">
                     <div class="d-flex align-center gap-1">
                       <v-icon size="16" color="primary">mdi-clock-outline</v-icon>
                       {{ proximaCita.horaInicio || '08:00' }} a. m.
@@ -109,8 +109,8 @@
                   </div>
                 </div>
 
-                <div class="d-flex flex-column align-end">
-                  <v-chip :color="colorEstado(proximaCita.estado)" size="small" class="font-weight-bold text-uppercase px-4 mb-2">
+                <div class="d-flex flex-row flex-sm-column align-center align-sm-end w-100 w-sm-auto justify-space-between mt-4 mt-sm-0">
+                  <v-chip :color="colorEstado(proximaCita.estado)" size="small" class="font-weight-bold text-uppercase px-4 mb-sm-2">
                     {{ proximaCita.estado }}
                   </v-chip>
                   <v-btn icon="mdi-dots-vertical" variant="text" color="grey-darken-1" size="small"></v-btn>
@@ -132,8 +132,8 @@
               </div>
 
               <!-- Bloque Detalles -->
-              <div class="d-flex align-center flex-grow-1 pa-4 bg-white">
-                <v-avatar color="green-lighten-5" size="50" class="mr-4">
+              <div class="d-flex flex-column flex-sm-row align-start align-sm-center flex-grow-1 pa-4 bg-white gap-3">
+                <v-avatar color="green-lighten-5" size="50" class="mr-sm-4 d-none d-sm-flex">
                   <v-icon color="secondary" size="24">{{ iconoEspecialidad(cita.especialidad) }}</v-icon>
                 </v-avatar>
                 
@@ -141,7 +141,7 @@
                   <div class="text-body-2 font-weight-bold text-primary lh-1 mb-1">{{ cita.especialidad || (cita.tipoCita ? cita.tipoCita.replace('_', ' ') : 'Consulta') }}</div>
                   <div class="text-caption text-grey-darken-3 mb-1">{{ cita.medicoResponsable || 'Médico por asignar' }}</div>
                   
-                  <div class="d-flex align-center gap-3 text-caption text-grey-darken-1">
+                  <div class="d-flex flex-wrap align-center gap-3 text-caption text-grey-darken-1">
                     <div class="d-flex align-center gap-1">
                       <v-icon size="14" color="grey">mdi-clock-outline</v-icon>
                       {{ cita.horaInicio || '10:00' }} a. m.
@@ -153,7 +153,7 @@
                   </div>
                 </div>
 
-                <div class="d-flex align-center gap-2">
+                <div class="d-flex flex-row flex-sm-column align-center align-sm-end gap-2 w-100 w-sm-auto justify-space-between mt-3 mt-sm-0">
                   <v-chip :color="colorEstado(cita.estado)" size="small" variant="tonal" class="font-weight-bold text-uppercase px-3">
                     {{ cita.estado }}
                   </v-chip>

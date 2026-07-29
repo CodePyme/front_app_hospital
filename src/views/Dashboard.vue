@@ -10,7 +10,7 @@
     <v-card class="mb-8 overflow-hidden position-relative" rounded="xl" color="#f4f9f1" elevation="0" style="border: 1px solid #e2ebd9;">
       <v-row no-gutters>
         <v-col cols="12" md="6" class="pa-8 d-flex flex-column justify-center z-index-1">
-          <h1 class="text-h3 font-weight-bold mb-2 text-primary" style="line-height: 1.2;">
+          <h1 class="text-h4 text-md-h3 font-weight-bold mb-2 text-primary" style="line-height: 1.2;">
             Tu salud, <br />
             <span class="text-secondary">nuestra prioridad</span>
           </h1>
@@ -63,7 +63,7 @@
           <v-btn variant="text" color="primary" size="small" class="text-none font-weight-bold">Ver todas</v-btn>
         </div>
         <v-card elevation="0" rounded="xl" class="border pa-6 h-100 d-flex align-center">
-          <div v-if="proximaCita" class="d-flex w-100 align-center">
+          <div v-if="proximaCita" class="d-flex flex-column flex-sm-row w-100 align-center align-sm-start text-center text-sm-left gap-4">
             <!-- Bloque fecha -->
             <v-card color="primary" rounded="lg" class="text-center text-white flex-shrink-0" width="80" height="90" elevation="0">
               <div class="text-caption font-weight-bold pt-2 text-uppercase opacity-80">{{ mesProximaCita }}</div>
@@ -72,14 +72,14 @@
             </v-card>
             
             <!-- Detalles -->
-            <div class="ml-6 flex-grow-1">
+            <div class="ml-sm-4 flex-grow-1">
               <div class="text-subtitle-1 font-weight-bold text-primary mb-1">Medicina General</div>
               <div class="text-body-2 text-grey-darken-2 mb-2">Dra. Laura Martínez</div>
-              <div class="d-flex align-center gap-1 text-body-2 text-primary mb-1">
+              <div class="d-flex align-center justify-center justify-sm-start gap-1 text-body-2 text-primary mb-1">
                 <v-icon size="16">mdi-clock-outline</v-icon>
                 <span>{{ horaProximaCita }}</span>
               </div>
-              <div class="d-flex align-center gap-1 text-body-2 text-primary">
+              <div class="d-flex align-center justify-center justify-sm-start gap-1 text-body-2 text-primary">
                 <v-icon size="16">mdi-map-marker-outline</v-icon>
                 <span>Consultorio 203</span>
               </div>

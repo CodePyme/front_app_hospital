@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <!-- Barra de navegación lateral -->
-    <v-navigation-drawer v-model="cajoneAbierto" :rail="rielesModo" color="primary" permanent class="sidebar-saludplus">
+    <v-navigation-drawer v-model="cajoneAbierto" :rail="rielesModo" color="primary" class="sidebar-saludplus">
       <!-- Logo / Título -->
       <div class="pa-4 d-flex align-center gap-3">
         <template v-if="almacenConfiguracion.logoUrl">
@@ -66,9 +66,13 @@
     </v-navigation-drawer>
 
     <!-- Barra superior -->
-    <v-app-bar color="background" elevation="0" class="px-4">
+    <v-app-bar color="background" elevation="0" class="px-2 px-md-4">
+      <template v-slot:prepend>
+        <v-app-bar-nav-icon color="primary" class="d-lg-none" @click="cajoneAbierto = !cajoneAbierto"></v-app-bar-nav-icon>
+      </template>
+
       <template v-slot:append>
-        <div class="d-flex align-center gap-4">
+        <div class="d-flex align-center gap-2 gap-md-4">
           <!-- Botón notificaciones -->
           <v-btn icon color="grey-darken-2" variant="text">
             <v-badge color="secondary" content="2" dot>
@@ -77,11 +81,14 @@
           </v-btn>
 
           <!-- Perfil usuario -->
-          <div class="d-flex align-center gap-2 cursor-pointer bg-white px-3 py-1 rounded-pill border">
-            <v-avatar color="green-lighten-5" size="36">
+          <div class="d-flex align-center gap-2 cursor-pointer bg-white px-2 px-md-3 py-1 rounded-pill border">
+            <v-avatar color="green-lighten-5" size="32" class="d-md-none">
+              <v-icon color="primary" size="20">mdi-account-outline</v-icon>
+            </v-avatar>
+            <v-avatar color="green-lighten-5" size="36" class="d-none d-md-flex">
               <v-icon color="primary">mdi-account-outline</v-icon>
             </v-avatar>
-            <div>
+            <div class="d-none d-sm-block">
               <div class="text-body-2 font-weight-bold text-grey-darken-3" style="line-height:1.2">
                 {{ almacenAuth.nombreCompleto }}
               </div>
