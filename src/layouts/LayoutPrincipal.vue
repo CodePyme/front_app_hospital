@@ -24,14 +24,14 @@
       <v-list class="px-2">
         <v-list-item v-for="elemento in elementosMenu" :key="elemento.nombre" :prepend-icon="elemento.icono"
           :title="elemento.titulo" :value="elemento.nombre" :to="elemento.ruta" rounded="xl"
-          active-color="primary-darken-1" color="secondary" class="mb-1 text-white font-weight-medium"
+          color="primary-darken-1" base-color="secondary" class="mb-1 text-white font-weight-medium"
           @click="alSeleccionarMenu" />
 
         <!-- Separador y sección super admin -->
         <template v-if="esAdmin">
           <v-divider class="my-2" />
           <v-list-item prepend-icon="mdi-cog-outline" title="Configuración" value="configuracion" to="/configuracion"
-            rounded="xl" active-color="primary-darken-1" color="secondary" class="mb-1 text-white font-weight-medium"
+            rounded="xl" color="primary-darken-1" base-color="secondary" class="mb-1 text-white font-weight-medium"
             @click="alSeleccionarMenu" />
         </template>
 
@@ -41,7 +41,7 @@
             SUPER ADMIN
           </v-list-subheader>
           <v-list-item prepend-icon="mdi-domain" title="Tenants" value="tenants" to="/tenants" rounded="lg"
-            active-color="deep-purple" color="deep-purple" @click="alSeleccionarMenu">
+            color="deep-purple" base-color="deep-purple" @click="alSeleccionarMenu">
             <template v-slot:append v-if="!rielesModo">
               <v-icon icon="mdi-shield-crown" size="14" color="deep-purple" />
             </template>
