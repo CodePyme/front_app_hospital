@@ -1,16 +1,18 @@
 <template>
   <LayoutPrincipal>
     <!-- Encabezado y Pestañas -->
-    <div class="d-flex align-center justify-space-between mb-6 border-b pb-4">
-      <div class="d-flex gap-4">
-        <div class="text-subtitle-1 font-weight-bold text-primary border-b-primary pb-1 cursor-pointer" style="border-bottom: 3px solid rgb(var(--v-theme-primary));">Mis resultados</div>
-        <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary">Imágenes diagnósticas</div>
+    <div class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between mb-6 border-b pb-4">
+      <div class="d-flex flex-wrap mb-3 mb-md-0">
+        <div class="text-subtitle-1 font-weight-bold text-primary border-b-primary pb-1 cursor-pointer mr-4 mb-2" style="border-bottom: 3px solid rgb(var(--v-theme-primary));">Mis resultados</div>
+        <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary mb-2">Imágenes diagnósticas</div>
       </div>
-      <v-chip color="secondary" variant="flat" class="text-primary font-weight-bold px-4" size="large">
-        <v-icon start size="20">mdi-shield-check-outline</v-icon>
-        <div class="text-caption" style="line-height: 1.1">
-          <div>Tus resultados están protegidos</div>
-          <div class="font-weight-regular">y solo tú puedes verlos.</div>
+      <v-chip color="secondary" variant="flat" class="text-primary px-4 w-100 w-md-auto py-2 h-auto" style="white-space: normal;">
+        <div class="d-flex align-center">
+          <v-icon start size="20" class="flex-shrink-0">mdi-shield-check-outline</v-icon>
+          <div class="text-caption" style="line-height: 1.1">
+            <div class="font-weight-bold">Tus resultados están protegidos</div>
+            <div class="font-weight-regular">y solo tú puedes verlos.</div>
+          </div>
         </div>
       </v-chip>
     </div>
@@ -104,29 +106,29 @@
             {{ examenSeleccionado.categoria }}
           </v-chip>
           
-          <div class="d-flex justify-space-between align-start mb-6">
-            <div>
+          <div class="d-flex flex-column flex-md-row justify-space-between align-start mb-6 gap-4">
+            <div class="w-100">
               <h2 class="text-h4 font-weight-bold text-primary mb-4">{{ examenSeleccionado.titulo }}</h2>
               
-              <div class="d-flex align-center gap-2 text-grey-darken-3 mb-2">
-                <v-icon size="18" color="grey-darken-1">mdi-calendar-blank-outline</v-icon>
+              <div class="d-flex align-start align-sm-center gap-2 text-grey-darken-3 mb-2">
+                <v-icon size="18" color="grey-darken-1" class="mt-1 mt-sm-0 flex-shrink-0">mdi-calendar-blank-outline</v-icon>
                 <span>{{ formatearFecha(examenSeleccionado.fecha) }} • {{ examenSeleccionado.hora }} a. m.</span>
               </div>
-              <div class="d-flex align-center gap-2 text-grey-darken-3 mb-2">
-                <v-icon size="18" color="grey-darken-1">mdi-flask-outline</v-icon>
+              <div class="d-flex align-start align-sm-center gap-2 text-grey-darken-3 mb-2">
+                <v-icon size="18" color="grey-darken-1" class="mt-1 mt-sm-0 flex-shrink-0">mdi-flask-outline</v-icon>
                 <span>{{ examenSeleccionado.laboratorio }}</span>
               </div>
-              <div class="d-flex align-center gap-2 text-grey-darken-3">
-                <v-icon size="18" color="grey-darken-1">mdi-account-outline</v-icon>
+              <div class="d-flex align-start align-sm-center gap-2 text-grey-darken-3">
+                <v-icon size="18" color="grey-darken-1" class="mt-1 mt-sm-0 flex-shrink-0">mdi-account-outline</v-icon>
                 <span>Ordenado por: {{ examenSeleccionado.medico }}</span>
               </div>
             </div>
             
-            <div class="d-flex flex-column gap-3">
-              <v-btn color="secondary" rounded="pill" elevation="0" class="text-primary font-weight-bold text-none px-6">
+            <div class="d-flex flex-column w-100 w-md-auto mt-2 mt-md-0">
+              <v-btn color="secondary" rounded="pill" elevation="0" class="text-primary font-weight-bold text-none px-6 w-100 w-md-auto mb-3">
                 <v-icon start>mdi-download</v-icon> Descargar PDF
               </v-btn>
-              <v-btn variant="outlined" color="grey-darken-1" rounded="pill" class="text-none font-weight-bold bg-white px-6">
+              <v-btn variant="outlined" color="grey-darken-1" rounded="pill" class="text-none font-weight-bold bg-white px-6 w-100 w-md-auto">
                 <v-icon start>mdi-history</v-icon> Ver histórico
               </v-btn>
             </div>

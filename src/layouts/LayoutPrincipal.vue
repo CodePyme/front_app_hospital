@@ -114,14 +114,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useAlmacenAutenticacion } from '../stores/autenticacion.store'
 import { useAlmacenConfiguracion } from '../stores/configuracion.store'
 import { usarAlertas } from '../composables/usarAlertas'
 
-const { mobile } = useDisplay()
+const { mdAndDown } = useDisplay()
 
 const almacenAuth = useAlmacenAutenticacion()
 const almacenConfiguracion = useAlmacenConfiguracion()
@@ -133,15 +133,22 @@ const nombreApp = import.meta.env.VITE_NOMBRE_APP || 'Portal Paciente'
 const cajoneAbierto = ref(true)
 const rielesModo = ref(false)
 
+// Cerrar el menú automáticamente al cambiar de ruta si estamos en móvil/tablet
+watch(
+  () => rutaActual.path,
+  () => {
+    if (mdAndDown.value) {
+      cajoneAbierto.value = false
+    }
+  }
+)
+
 const elementosMenu = [
   { nombre: 'dashboard', titulo: 'Inicio', icono: 'mdi-home-outline', ruta: '/' },
   { nombre: 'citas', titulo: 'Mis citas', icono: 'mdi-calendar-check', ruta: '/citas' },
   { nombre: 'resultados', titulo: 'Resultados de exámenes', icono: 'mdi-flask-outline', ruta: '/resultados' },
   { nombre: 'historia', titulo: 'Historia clínica', icono: 'mdi-file-document-outline', ruta: '/historia' },
   { nombre: 'medicamentos', titulo: 'Medicamentos', icono: 'mdi-pill', ruta: '/medicamentos' },
-  // { nombre: 'facturacion', titulo: 'Facturación', icono: 'mdi-receipt-text-outline', ruta: '/facturacion' },
-  // { nombre: 'mensajes', titulo: 'Mensajes', icono: 'mdi-message-outline', ruta: '/mensajes' },
-  // { nombre: 'perfil', titulo: 'Mi perfil', icono: 'mdi-account-outline', ruta: '/perfil' },
 ]
 
 const CORREO_SUPER_ADMIN = 'admin@codepyme.com'
@@ -170,7 +177,7 @@ async function confirmarCierreSesion() {
 }
 
 function alSeleccionarMenu() {
-  if (mobile.value) {
+  if (mdAndDown.value) {
     cajoneAbierto.value = false
   }
 }

@@ -6,25 +6,25 @@
       <div class="d-flex flex-column flex-md-row">
         
         <!-- Info Principal -->
-        <div class="pa-6 d-flex align-start flex-grow-1 border-e-md">
-          <v-avatar color="green-lighten-4" size="80" class="mr-6">
+        <div class="pa-4 pa-sm-6 d-flex flex-column flex-sm-row align-center align-sm-start text-center text-sm-left flex-grow-1 border-e-md">
+          <v-avatar color="green-lighten-4" size="80" class="mr-0 mr-sm-6 mb-4 mb-sm-0 flex-shrink-0">
             <v-icon color="secondary" size="48">mdi-account</v-icon>
           </v-avatar>
           
           <div class="flex-grow-1">
             <h2 class="text-h4 font-weight-bold text-primary mb-2">Juan Pérez</h2>
             
-            <div class="d-flex flex-wrap align-center gap-3 text-body-2 text-grey-darken-3 mb-3 font-weight-medium">
+            <div class="d-flex flex-wrap justify-center justify-sm-start align-center gap-1 gap-sm-3 text-body-2 text-grey-darken-3 mb-3 font-weight-medium">
               <span>CC 1.234.567.890</span>
-              <span class="text-grey-lighten-1">|</span>
+              <span class="text-grey-lighten-1 d-none d-sm-inline">|</span>
               <span>35 años</span>
-              <span class="text-grey-lighten-1">|</span>
+              <span class="text-grey-lighten-1 d-none d-sm-inline">|</span>
               <span>Masculino</span>
-              <span class="text-grey-lighten-1">|</span>
+              <span class="text-grey-lighten-1 d-none d-sm-inline">|</span>
               <span>O+</span>
             </div>
             
-            <div class="d-flex flex-wrap align-center gap-4 text-caption text-grey-darken-1">
+            <div class="d-flex flex-wrap justify-center justify-sm-start align-center gap-2 gap-sm-4 text-caption text-grey-darken-1">
               <div class="d-flex align-center gap-1">
                 <v-icon size="16">mdi-calendar-blank-outline</v-icon> 15/06/1989
               </div>
@@ -39,7 +39,7 @@
         </div>
 
         <!-- Alerta Información Importante -->
-        <div class="pa-6" style="width: 100%; max-width: 450px;">
+        <div class="pa-4 pa-sm-6 w-100" style="max-width: 100%; @media (min-width: 600px) { max-width: 450px; }">
           <v-card elevation="0" class="h-100 bg-green-lighten-5 rounded-lg border pa-4 d-flex align-center cursor-pointer hover-card info-importante-card">
             <v-avatar color="white" size="36" class="mr-3 border-secondary">
               <v-icon color="secondary" size="20">mdi-shield-plus-outline</v-icon>
@@ -59,8 +59,8 @@
     </v-card>
 
     <!-- Navegación de Pestañas -->
-    <div class="border-b mb-6 overflow-x-auto hide-scrollbar">
-      <div class="d-flex" style="min-width: 800px;">
+    <div class="border-b mb-6">
+      <div class="d-flex flex-wrap gap-2">
         <div 
           v-for="tab in tabs" 
           :key="tab.id"
@@ -153,31 +153,31 @@
           <div v-for="(evento, i) in actividadReciente" :key="i" class="timeline-item d-flex mb-6">
             
             <!-- Fecha (Izquierda) -->
-            <div class="timeline-date d-flex flex-column align-center justify-start text-primary pt-2 mr-6" style="width: 40px; flex-shrink: 0;">
+            <div class="timeline-date d-flex flex-column align-center justify-start text-primary pt-2 mr-4 mr-md-6" style="width: 40px; flex-shrink: 0;">
               <div class="text-h6 font-weight-black lh-1">{{ evento.dia }}</div>
               <div class="text-caption font-weight-bold text-uppercase">{{ evento.mes }}</div>
               <div class="text-caption font-weight-medium opacity-70">{{ evento.anio }}</div>
             </div>
 
             <!-- Punto y Línea -->
-            <div class="timeline-node d-flex flex-column align-center mr-6">
+            <div class="timeline-node d-flex flex-column align-center mr-4 mr-md-6">
               <div class="timeline-dot bg-secondary"></div>
               <div v-if="i !== actividadReciente.length - 1" class="timeline-line bg-grey-lighten-2 flex-grow-1"></div>
             </div>
 
             <!-- Tarjeta de Contenido -->
-            <v-card elevation="0" class="border rounded-xl bg-white flex-grow-1 pa-4 d-flex align-center event-card">
-              <v-avatar color="green-lighten-5" size="48" class="mr-4">
+            <v-card elevation="0" class="border rounded-xl bg-white flex-grow-1 pa-4 d-flex flex-column flex-sm-row align-start align-sm-center event-card">
+              <v-avatar color="green-lighten-5" size="48" class="mr-0 mr-sm-4 mb-3 mb-sm-0 flex-shrink-0">
                 <v-icon color="secondary" size="24">{{ evento.icono }}</v-icon>
               </v-avatar>
               
-              <div class="flex-grow-1 mr-4">
+              <div class="flex-grow-1 mr-0 mr-sm-4 mb-3 mb-sm-0 w-100">
                 <div class="text-body-1 font-weight-bold text-primary lh-1 mb-1">{{ evento.titulo }}</div>
                 <div class="text-caption text-grey-darken-3 mb-1 font-weight-medium">{{ evento.subtitulo }}</div>
                 <div class="text-caption text-grey-darken-1">{{ evento.detalle }}</div>
               </div>
 
-              <div class="d-flex align-center gap-2">
+              <div class="d-flex align-center gap-2 align-self-start align-self-sm-center">
                 <v-chip color="green-lighten-5" text-color="secondary" variant="flat" size="small" class="font-weight-bold px-3 event-btn cursor-pointer">
                   {{ evento.accion }}
                 </v-chip>

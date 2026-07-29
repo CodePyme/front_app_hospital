@@ -1,13 +1,13 @@
 <template>
   <LayoutPrincipal>
     <!-- Controles superiores -->
-    <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between mb-6 border-b pb-4 gap-4">
-      <div class="d-flex flex-wrap gap-4">
-        <div class="text-subtitle-1 font-weight-bold text-primary border-b-primary pb-1" style="border-bottom: 3px solid rgb(var(--v-theme-primary));">Mis citas</div>
-        <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary">Agendar cita</div>
-        <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary">Historial de citas</div>
+    <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between mb-6 border-b pb-4">
+      <div class="d-flex flex-wrap mb-4 mb-sm-0">
+        <div class="text-subtitle-1 font-weight-bold text-primary border-b-primary pb-1 mr-4 mb-2" style="border-bottom: 3px solid rgb(var(--v-theme-primary));">Mis citas</div>
+        <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary mr-4 mb-2">Agendar cita</div>
+        <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary mb-2">Historial de citas</div>
       </div>
-      <v-btn color="secondary" rounded="pill" class="text-primary font-weight-bold px-6 text-none w-100 w-sm-auto" prepend-icon="mdi-plus" elevation="0" @click="abrirDialogoCrear">
+      <v-btn color="secondary" rounded="pill" class="text-primary font-weight-bold px-6 text-none w-100 w-sm-auto mt-2 mt-sm-0" prepend-icon="mdi-plus" elevation="0" @click="abrirDialogoCrear">
         Agendar nueva cita
       </v-btn>
     </div>

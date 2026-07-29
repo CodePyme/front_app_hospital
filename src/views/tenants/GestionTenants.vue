@@ -1,9 +1,9 @@
 <template>
   <LayoutPrincipal>
     <!-- Encabezado -->
-    <div class="d-flex align-center justify-space-between mb-6">
+    <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between mb-6 gap-4">
       <div>
-        <div class="d-flex align-center gap-2 mb-1">
+        <div class="d-flex align-center flex-wrap gap-2 mb-1">
           <v-icon icon="mdi-domain" color="primary" size="28" />
           <h2 class="text-h5 font-weight-bold">Gestión de Tenants</h2>
           <v-chip color="deep-purple" variant="tonal" size="small" prepend-icon="mdi-shield-crown">
@@ -19,6 +19,7 @@
         color="primary"
         prepend-icon="mdi-plus"
         @click="abrirDialogoCrear"
+        class="w-100 w-sm-auto"
       >
         Nuevo Tenant
       </v-btn>
