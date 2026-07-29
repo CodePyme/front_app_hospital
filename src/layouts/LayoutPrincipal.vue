@@ -24,13 +24,15 @@
       <v-list class="px-2">
         <v-list-item v-for="elemento in elementosMenu" :key="elemento.nombre" :prepend-icon="elemento.icono"
           :title="elemento.titulo" :value="elemento.nombre" :to="elemento.ruta" rounded="xl"
-          active-color="primary-darken-1" color="secondary" class="mb-1 text-white font-weight-medium" />
+          active-color="primary-darken-1" color="secondary" class="mb-1 text-white font-weight-medium"
+          @click="alSeleccionarMenu" />
 
         <!-- Separador y sección super admin -->
         <template v-if="esAdmin">
           <v-divider class="my-2" />
           <v-list-item prepend-icon="mdi-cog-outline" title="Configuración" value="configuracion" to="/configuracion"
-            rounded="xl" active-color="primary-darken-1" color="secondary" class="mb-1 text-white font-weight-medium" />
+            rounded="xl" active-color="primary-darken-1" color="secondary" class="mb-1 text-white font-weight-medium"
+            @click="alSeleccionarMenu" />
         </template>
 
         <template v-if="esSuperAdmin">
@@ -39,7 +41,7 @@
             SUPER ADMIN
           </v-list-subheader>
           <v-list-item prepend-icon="mdi-domain" title="Tenants" value="tenants" to="/tenants" rounded="lg"
-            active-color="deep-purple" color="deep-purple">
+            active-color="deep-purple" color="deep-purple" @click="alSeleccionarMenu">
             <template v-slot:append v-if="!rielesModo">
               <v-icon icon="mdi-shield-crown" size="14" color="deep-purple" />
             </template>
@@ -114,9 +116,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useDisplay } from 'vuetify'
 import { useAlmacenAutenticacion } from '../stores/autenticacion.store'
 import { useAlmacenConfiguracion } from '../stores/configuracion.store'
 import { usarAlertas } from '../composables/usarAlertas'
+
+const { mobile } = useDisplay()
 
 const almacenAuth = useAlmacenAutenticacion()
 const almacenConfiguracion = useAlmacenConfiguracion()
@@ -161,6 +166,12 @@ async function confirmarCierreSesion() {
   if (confirmado) {
     almacenAuth.cerrarSesion()
     enrutador.push({ name: 'iniciar-sesion' })
+  }
+}
+
+function alSeleccionarMenu() {
+  if (mobile.value) {
+    cajoneAbierto.value = false
   }
 }
 </script>
