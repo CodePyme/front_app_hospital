@@ -36,6 +36,7 @@
         no-data-text="No hay pacientes registrados"
         item-value="id"
         hover
+        mobile-breakpoint="md"
       >
         <!-- Columna nombre completo -->
         <template v-slot:item.nombres="{ item }">

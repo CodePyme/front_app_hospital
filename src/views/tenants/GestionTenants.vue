@@ -72,6 +72,7 @@
         no-data-text="No hay tenants registrados"
         item-value="id"
         hover
+        mobile-breakpoint="md"
       >
         <!-- Columna tenant (nombre + dominio) -->
         <template v-slot:item.nombre="{ item }">

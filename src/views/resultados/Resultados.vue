@@ -146,26 +146,32 @@
               <p class="text-body-2 text-grey-darken-1 mb-0">{{ examenSeleccionado.mensajeResumen }}</p>
             </div>
             
-            <v-table class="bg-transparent" v-if="examenSeleccionado.parametros">
-              <thead>
-                <tr>
-                  <th class="text-left font-weight-bold text-grey-darken-3 bg-grey-lighten-5">Parámetro</th>
-                  <th class="text-left font-weight-bold text-grey-darken-3 bg-grey-lighten-5">Resultado</th>
-                  <th class="text-left font-weight-bold text-grey-darken-3 bg-grey-lighten-5">Valores de referencia</th>
-                  <th class="text-center font-weight-bold text-grey-darken-3 bg-grey-lighten-5">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(parametro, index) in examenSeleccionado.parametros" :key="index" class="border-b-light">
-                  <td class="text-grey-darken-2">{{ parametro.nombre }}</td>
-                  <td class="text-grey-darken-3 font-weight-medium">{{ parametro.resultado }}</td>
-                  <td class="text-grey-darken-1">{{ parametro.referencia }}</td>
-                  <td class="text-center">
-                    <div :class="['status-dot mx-auto', `bg-${colorDot(parametro.estado)}`]"></div>
-                  </td>
-                </tr>
-              </tbody>
-            </v-table>
+            <v-data-table
+              v-if="examenSeleccionado.parametros"
+              :headers="columnasParametros"
+              :items="examenSeleccionado.parametros"
+              class="bg-transparent"
+              mobile-breakpoint="md"
+              hover
+            >
+              <template v-slot:bottom></template>
+              
+              <template v-slot:item.nombre="{ item }">
+                <span class="text-grey-darken-2">{{ item.nombre }}</span>
+              </template>
+              
+              <template v-slot:item.resultado="{ item }">
+                <span class="text-grey-darken-3 font-weight-medium">{{ item.resultado }}</span>
+              </template>
+              
+              <template v-slot:item.referencia="{ item }">
+                <span class="text-grey-darken-1">{{ item.referencia }}</span>
+              </template>
+              
+              <template v-slot:item.estado="{ item }">
+                <div :class="['status-dot mx-auto', `bg-${colorDot(item.estado)}`]"></div>
+              </template>
+            </v-data-table>
             
             <div v-else class="pa-6 text-center text-grey-darken-1">
               No hay parámetros detallados para este examen.
@@ -213,6 +219,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import LayoutPrincipal from '../../layouts/LayoutPrincipal.vue'
+
+// Columnas para la tabla de parámetros
+const columnasParametros = [
+  { title: 'Parámetro', key: 'nombre', sortable: false },
+  { title: 'Resultado', key: 'resultado', sortable: false },
+  { title: 'Valores de referencia', key: 'referencia', sortable: false },
+  { title: 'Estado', key: 'estado', align: 'center', sortable: false },
+]
 
 // Mock Data idéntica a la imagen
 const listaExamenes = ref([
