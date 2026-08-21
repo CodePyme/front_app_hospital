@@ -13,15 +13,47 @@ export const useAlmacenCitas = defineStore('citas', () => {
   const error = ref(null)
 
   // Acciones
+  async function obtenerMisCitas() {
+    cargando.value = true
+    error.value = null
+    try {
+      const respuesta = await servicioCitas.obtenerMisCitas()
+      listaCitas.value = respuesta.datos || []
+      total.value = listaCitas.value.length
+      return listaCitas.value
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Error al obtener la agenda de citas'
+      throw err
+    } finally {
+      cargando.value = false
+    }
+  }
+
+  async function cancelarCitaSap(datos) {
+    cargando.value = true
+    error.value = null
+    try {
+      const respuesta = await servicioCitas.cancelarCitaSap(datos)
+      await obtenerMisCitas()
+      return respuesta
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Error al cancelar la cita médica'
+      throw err
+    } finally {
+      cargando.value = false
+    }
+  }
+
   async function obtenerCitas(pagina = 1, limite = 10) {
     cargando.value = true
     error.value = null
     try {
       const respuesta = await servicioCitas.obtenerTodas(pagina, limite)
-      listaCitas.value = respuesta.datos
-      total.value = respuesta.total
-      paginaActual.value = respuesta.pagina
-      limitePorPagina.value = respuesta.limite
+      listaCitas.value = respuesta.datos || []
+      total.value = respuesta.total || listaCitas.value.length
+      paginaActual.value = respuesta.pagina || 1
+      limitePorPagina.value = respuesta.limite || 10
+      return listaCitas.value
     } catch (err) {
       error.value = err.response?.data?.message || 'Error al obtener citas'
       throw err
@@ -131,6 +163,8 @@ export const useAlmacenCitas = defineStore('citas', () => {
     limitePorPagina,
     cargando,
     error,
+    obtenerMisCitas,
+    cancelarCitaSap,
     obtenerCitas,
     obtenerCitaPorId,
     obtenerCitasPorPaciente,

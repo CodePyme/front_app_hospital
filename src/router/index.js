@@ -66,7 +66,7 @@ const rutas = [
     path: '/configuracion',
     name: 'configuracion',
     component: Configuracion,
-    meta: { requiereAutenticacion: true, roles: ['administrador'] },
+    meta: { requiereAuth: true, soloAdmin: true },
   },
   {
     path: '/tenants',
@@ -92,13 +92,17 @@ enrutador.beforeEach((hacia, desde, siguiente) => {
   const almacenAuth = useAlmacenAutenticacion()
   const requiereAuth = hacia.meta.requiereAuth !== false
   const CORREO_SUPER_ADMIN = 'admin@codepyme.com'
+  const esAdmin =
+    almacenAuth.usuario?.rol === 'administrador' ||
+    almacenAuth.usuario?.correoElectronico === CORREO_SUPER_ADMIN
 
   if (requiereAuth && !almacenAuth.estaAutenticado) {
     siguiente({ name: 'iniciar-sesion' })
   } else if (!requiereAuth && almacenAuth.estaAutenticado && hacia.name === 'iniciar-sesion') {
     siguiente({ name: 'dashboard' })
   } else if (hacia.meta.soloSuperAdmin && almacenAuth.usuario?.correoElectronico !== CORREO_SUPER_ADMIN) {
-    // Redirigir al dashboard si no es super admin
+    siguiente({ name: 'dashboard' })
+  } else if (hacia.meta.soloAdmin && !esAdmin) {
     siguiente({ name: 'dashboard' })
   } else {
     siguiente()

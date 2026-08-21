@@ -15,10 +15,20 @@ export const servicioPacientes = {
     return respuesta.data
   },
 
+  async obtenerMiPerfil() {
+    const respuesta = await clienteApi.get(`${RUTA_PACIENTES}/mi-perfil`)
+    return respuesta.data
+  },
+
   async buscar(termino) {
     const respuesta = await clienteApi.get(`${RUTA_PACIENTES}/buscar`, {
       params: { termino },
     })
+    return respuesta.data
+  },
+
+  async consultarPorEpisodio(episodio) {
+    const respuesta = await clienteApi.get(`${RUTA_PACIENTES}/episodio/${episodio}`)
     return respuesta.data
   },
 

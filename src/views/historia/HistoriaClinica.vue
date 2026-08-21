@@ -1,61 +1,116 @@
 <template>
   <LayoutPrincipal>
-    
-    <!-- Tarjeta del Paciente (Encabezado) -->
-    <v-card elevation="0" class="border rounded-xl mb-6 bg-white overflow-hidden">
-      <div class="d-flex flex-column flex-md-row">
-        
-        <!-- Info Principal -->
-        <div class="pa-4 pa-sm-6 d-flex flex-column flex-sm-row align-center align-sm-start text-center text-sm-left flex-grow-1 border-e-md">
-          <v-avatar color="green-lighten-4" size="80" class="mr-0 mr-sm-6 mb-4 mb-sm-0 flex-shrink-0">
-            <v-icon color="secondary" size="48">mdi-account</v-icon>
-          </v-avatar>
-          
-          <div class="flex-grow-1">
-            <h2 class="text-h4 font-weight-bold text-primary mb-2">Juan Pérez</h2>
-            
-            <div class="d-flex flex-wrap justify-center justify-sm-start align-center gap-1 gap-sm-3 text-body-2 text-grey-darken-3 mb-3 font-weight-medium">
-              <span>CC 1.234.567.890</span>
-              <span class="text-grey-lighten-1 d-none d-sm-inline">|</span>
-              <span>35 años</span>
-              <span class="text-grey-lighten-1 d-none d-sm-inline">|</span>
-              <span>Masculino</span>
-              <span class="text-grey-lighten-1 d-none d-sm-inline">|</span>
-              <span>O+</span>
-            </div>
-            
-            <div class="d-flex flex-wrap justify-center justify-sm-start align-center gap-2 gap-sm-4 text-caption text-grey-darken-1">
-              <div class="d-flex align-center gap-1">
-                <v-icon size="16">mdi-calendar-blank-outline</v-icon> 15/06/1989
-              </div>
-              <div class="d-flex align-center gap-1">
-                <v-icon size="16">mdi-phone-outline</v-icon> 300 123 4567
-              </div>
-              <div class="d-flex align-center gap-1">
-                <v-icon size="16">mdi-email-outline</v-icon> juanperez@email.com
-              </div>
-            </div>
-          </div>
+    <!-- Barra de Consulta por Episodio -->
+    <v-card elevation="0" class="border rounded-xl mb-6 bg-white pa-4">
+      <div class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between gap-4">
+        <div>
+          <h1 class="text-h6 font-weight-bold text-primary mb-1 d-flex align-center gap-2">
+            <v-icon color="secondary">mdi-folder-account-outline</v-icon>
+            Historia Clínica y Consulta por Episodio
+          </h1>
+          <p class="text-caption text-grey-darken-1 mb-0">
+            Consulta la información clínica y datos demográficos asociados a un episodio de atención en San Vicente Fundación.
+          </p>
         </div>
 
-        <!-- Alerta Información Importante -->
-        <div class="pa-4 pa-sm-6 w-100" style="max-width: 100%; @media (min-width: 600px) { max-width: 450px; }">
-          <v-card elevation="0" class="h-100 bg-green-lighten-5 rounded-lg border pa-4 d-flex align-center cursor-pointer hover-card info-importante-card">
-            <v-avatar color="white" size="36" class="mr-3 border-secondary">
-              <v-icon color="secondary" size="20">mdi-shield-plus-outline</v-icon>
-            </v-avatar>
-            
-            <div class="flex-grow-1 text-caption text-primary" style="line-height: 1.4">
-              <div class="text-subtitle-2 font-weight-bold mb-1">Información importante</div>
-              <div><span class="font-weight-bold text-grey-darken-3">Alergias:</span> Penicilina, Ácaros del polvo</div>
-              <div><span class="font-weight-bold text-grey-darken-3">Enfermedades:</span> Hipertensión arterial</div>
-              <div><span class="font-weight-bold text-grey-darken-3">Medicamentos actuales:</span> Losartán 50 mg cada 12 h</div>
-            </div>
-            
-            <v-icon color="grey-darken-1" size="20" class="ml-2">mdi-chevron-right</v-icon>
-          </v-card>
+        <div class="d-flex align-center gap-2 w-100 w-md-auto" style="min-width: 320px; max-width: 440px;">
+          <v-text-field
+            v-model="numeroEpisodio"
+            placeholder="Número de episodio (ej. 0000017836)"
+            variant="outlined"
+            density="compact"
+            hide-details
+            rounded="lg"
+            bg-color="grey-lighten-5"
+            prepend-inner-icon="mdi-numeric"
+            clearable
+            @keyup.enter="consultarEpisodio"
+          ></v-text-field>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            class="text-none font-weight-bold px-4"
+            :loading="cargandoEpisodio"
+            @click="consultarEpisodio"
+          >
+            Buscar
+          </v-btn>
         </div>
       </div>
+    </v-card>
+
+    <!-- Tarjeta del Paciente con Datos Demográficos Reales de SAP PO -->
+    <v-card elevation="0" class="border rounded-xl mb-6 bg-white pa-6">
+      <div class="d-flex align-center justify-space-between flex-wrap gap-2 mb-4 pb-2 border-b">
+        <h2 class="text-h5 font-weight-black text-primary text-uppercase letter-spacing-1">
+          {{ datosPacienteActual.nombreCompleto || 'PACIENTE' }}
+        </h2>
+        <v-chip v-if="datosPacienteActual.episodio" color="secondary" variant="flat" size="small" class="font-weight-bold px-3">
+          Episodio N.° {{ datosPacienteActual.episodio }}
+        </v-chip>
+      </div>
+
+      <!-- Cuadrícula de Datos Demográficos Reales SAP PO -->
+      <v-row dense class="datos-demograficos-grid text-caption">
+        <!-- Fila 1 -->
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Paciente N.°</div>
+          <div class="text-body-1 font-weight-bold text-primary">{{ datosPacienteActual.numeroPaciente || '—' }}</div>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Documento</div>
+          <div class="text-body-1 font-weight-bold text-primary">{{ datosPacienteActual.tipoDocumento }} {{ datosPacienteActual.numeroDocumento }}</div>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Tipo de documento</div>
+          <div class="text-body-1 font-weight-bold text-primary">{{ datosPacienteActual.descDocumento || datosPacienteActual.tipoDocumento || 'Céd.Ciudadanía' }}</div>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Fecha de nacimiento</div>
+          <div class="text-body-1 font-weight-bold text-primary">{{ formatearFechaNac(datosPacienteActual.fechaNacimiento) }}</div>
+        </v-col>
+
+        <!-- Fila 2 -->
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Edad</div>
+          <div class="text-body-1 font-weight-bold text-primary">{{ datosPacienteActual.edad || '—' }}</div>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Sexo</div>
+          <div class="text-body-1 font-weight-bold text-primary text-uppercase">{{ datosPacienteActual.sexo || datosPacienteActual.genero || '—' }}</div>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Teléfono principal</div>
+          <div class="text-body-1 font-weight-bold text-primary">{{ datosPacienteActual.telefono || '—' }}</div>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Correo electrónico</div>
+          <div class="text-body-2 font-weight-bold text-primary text-truncate">{{ datosPacienteActual.correoElectronico || '—' }}</div>
+        </v-col>
+
+        <!-- Fila 3 -->
+        <v-col cols="12" sm="12" md="6" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Dirección</div>
+          <div class="text-body-2 font-weight-bold text-primary text-uppercase">{{ datosPacienteActual.direccionCompleta || datosPacienteActual.direccion || '—' }}</div>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">Servicio</div>
+          <div class="text-body-1 font-weight-bold text-grey-darken-1">—</div>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3" class="mb-3">
+          <div class="text-caption font-weight-bold text-uppercase text-grey-darken-1 mb-1">UO Médica</div>
+          <div class="text-body-1 font-weight-bold text-grey-darken-1">—</div>
+        </v-col>
+      </v-row>
     </v-card>
 
     <!-- Navegación de Pestañas -->
@@ -65,6 +120,7 @@
           v-for="tab in tabs" 
           :key="tab.id"
           :class="['tab-item d-flex align-center gap-2 pa-3 font-weight-bold cursor-pointer text-subtitle-2', { 'active-tab': tab.active }]"
+          @click="seleccionarTab(tab.id)"
         >
           <v-icon size="20">{{ tab.icono }}</v-icon>
           {{ tab.titulo }}
@@ -84,7 +140,7 @@
               <v-icon color="secondary" size="28">mdi-calendar-clock-outline</v-icon>
             </v-avatar>
             <div class="text-caption text-grey-darken-2" style="line-height: 1.4">
-              Paciente con antecedentes de hipertensión arterial controlada. Sin antecedentes quirúrgicos. No fuma. Realiza actividad física 3 veces por semana.
+              Paciente atendido en San Vicente Fundación. Consulta y evolución médica registrada en el sistema asistencial.
             </div>
           </div>
           <v-btn variant="text" color="primary" class="font-weight-bold text-none" append-icon="mdi-chevron-down">
@@ -210,8 +266,111 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import LayoutPrincipal from '../../layouts/LayoutPrincipal.vue'
+import { useAlmacenAutenticacion } from '../../stores/autenticacion.store'
+import { servicioPacientes } from '../../services/pacientes.service'
+import { usarAlertas } from '../../composables/usarAlertas'
+
+const almacenAuth = useAlmacenAutenticacion()
+const { mostrarExito, mostrarError } = usarAlertas()
+
+const numeroEpisodio = ref('')
+const cargandoEpisodio = ref(false)
+
+const datosPacienteActual = reactive({
+  numeroPaciente: '',
+  nombreCompleto: '',
+  tipoDocumento: 'CC',
+  descDocumento: 'Céd.Ciudadanía',
+  numeroDocumento: '',
+  edad: '',
+  sexo: '',
+  fechaNacimiento: '',
+  telefono: '',
+  correoElectronico: '',
+  direccion: '',
+  direccionCompleta: '',
+  ciudad: '',
+  episodio: '',
+})
+
+function formatearFechaNac(fecha) {
+  if (!fecha) return '—'
+  if (fecha.includes('/')) return fecha
+  const partes = fecha.split('-')
+  if (partes.length === 3) {
+    return `${partes[2]}/${partes[1]}/${partes[0]}`
+  }
+  return fecha
+}
+
+async function cargarPerfilInicial() {
+  try {
+    const res = await servicioPacientes.obtenerMiPerfil()
+    const datos = res.datos || {}
+    actualizarDatosPaciente(datos)
+  } catch (e) {
+    // Si falla, fallback a la sesión básica
+    if (almacenAuth.usuario) {
+      datosPacienteActual.nombreCompleto = almacenAuth.nombreCompleto || 'Paciente'
+      datosPacienteActual.correoElectronico = almacenAuth.usuario.correoElectronico || ''
+      if (almacenAuth.usuario.tipoDocumento) datosPacienteActual.tipoDocumento = almacenAuth.usuario.tipoDocumento
+      if (almacenAuth.usuario.numeroDocumento) datosPacienteActual.numeroDocumento = almacenAuth.usuario.numeroDocumento
+    }
+  }
+}
+
+function actualizarDatosPaciente(datos, episodio = '') {
+  datosPacienteActual.numeroPaciente = datos.numeroPaciente || datos.Numero_paciente || ''
+  datosPacienteActual.nombreCompleto =
+    datos.nombreCompleto ||
+    datos.Nombre_completo ||
+    `${datos.nombres || datos.Primer_nombre || ''} ${datos.apellidos || datos.Primer_apellido || ''}`.trim() ||
+    'Paciente'
+  datosPacienteActual.tipoDocumento = datos.tipoDocumento || datos.Tipo_documento || 'CC'
+  datosPacienteActual.descDocumento = datos.descDocumento || datos.Desc_documento || 'Céd.Ciudadanía'
+  datosPacienteActual.numeroDocumento = datos.numeroDocumento || String(datos.Numero_documento || '')
+  datosPacienteActual.edad = datos.edad || datos.Edad || '—'
+  datosPacienteActual.sexo = datos.sexo || datos.Sexo || datos.genero || 'FEMENINO'
+  datosPacienteActual.fechaNacimiento = datos.fechaNacimiento || datos.Fecha_nacimiento || ''
+  datosPacienteActual.telefono = datos.telefono || datos.telefonoPrincipal || String(datos.Telefono_principal || '')
+  datosPacienteActual.correoElectronico = datos.correoElectronico || datos.email || datos.Direcciones?.Email || ''
+  datosPacienteActual.direccion = datos.direccion || datos.Direcciones?.Direccion || ''
+  datosPacienteActual.direccionCompleta = datos.direccionCompleta || datos.direccion || ''
+  datosPacienteActual.ciudad = datos.ciudad || datos.poblacion || datos.Direcciones?.Poblacion || ''
+  datosPacienteActual.episodio = episodio
+}
+
+async function consultarEpisodio() {
+  if (!numeroEpisodio.value || !numeroEpisodio.value.trim()) {
+    mostrarError('Por favor ingresa un número de episodio válido.')
+    return
+  }
+
+  cargandoEpisodio.value = true
+  try {
+    const res = await servicioPacientes.consultarPorEpisodio(numeroEpisodio.value.trim())
+    const datos = res.datos || {}
+    actualizarDatosPaciente(datos, numeroEpisodio.value.trim())
+    mostrarExito(`Episodio ${numeroEpisodio.value.trim()} cargado exitosamente.`)
+  } catch (error) {
+    const msg = error.response?.data?.message || error.message || 'No fue posible encontrar el episodio especificado.'
+    mostrarError(msg)
+  } finally {
+    cargandoEpisodio.value = false
+  }
+}
+
+function seleccionarTab(id) {
+  tabs.value.forEach(t => {
+    t.active = t.id === id
+  })
+}
+
+onMounted(() => {
+  cargarPerfilInicial()
+})
 
 // Pestañas
 const tabs = ref([
@@ -237,7 +396,7 @@ const profesionales = ref([
   { nombre: 'Dr. Andrés Gómez', especialidad: 'Cardiología', badge: 'Especialista', colorBadge: 'grey-lighten-3' },
 ])
 
-// Línea de tiempo (Mocks exactos)
+// Línea de tiempo
 const actividadReciente = ref([
   {
     dia: '20', mes: 'MAY', anio: '2024',
@@ -291,111 +450,63 @@ const actividadReciente = ref([
   border-bottom: 1px solid #EAECEF !important;
 }
 
-.border-e-md {
-  border-right: 1px solid #EAECEF !important;
-}
-@media (max-width: 959px) {
-  .border-e-md {
-    border-right: none !important;
-    border-bottom: 1px solid #EAECEF !important;
-  }
+.border-t {
+  border-top: 1px solid #EAECEF !important;
 }
 
 .border-b-light {
-  border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+  border-bottom: 1px solid #F4F5F7 !important;
 }
 
-.border-secondary {
-  border: 1px solid rgb(var(--v-theme-secondary)) !important;
-}
-
-.lh-1 {
-  line-height: 1.1 !important;
-}
-
-.hover-underline:hover {
-  text-decoration: underline !important;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Tabs */
 .tab-item {
-  color: #78909c; /* grey-darken-1 */
-  border-bottom: 3px solid transparent;
+  color: #64748B;
+  border-bottom: 2px solid transparent;
   transition: all 0.2s;
-  padding-bottom: 12px !important;
 }
+
 .tab-item:hover {
   color: rgb(var(--v-theme-primary));
 }
-.tab-item.active-tab {
-  color: rgb(var(--v-theme-primary));
-  border-bottom-color: rgb(var(--v-theme-primary));
-}
 
-/* Tarjetas interactivas */
-.hover-card {
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.hover-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
-}
-
-.info-importante-card {
-  border-left: 4px solid rgb(var(--v-theme-secondary)) !important;
+.active-tab {
+  color: rgb(var(--v-theme-primary)) !important;
+  border-bottom: 2px solid rgb(var(--v-theme-secondary)) !important;
 }
 
 .indicator-card {
-  background-color: #FAFAFA;
+  transition: transform 0.2s;
 }
 
-/* Timeline Custom CSS */
-.timeline-item {
-  position: relative;
-}
-
-.timeline-node {
-  width: 16px;
-  margin-top: 10px;
+.indicator-card:hover {
+  transform: translateY(-2px);
 }
 
 .timeline-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  position: relative;
-  z-index: 2;
+  margin-top: 6px;
 }
 
 .timeline-line {
   width: 2px;
-  background-color: #EAECEF;
-  margin-top: 4px;
-  margin-bottom: -14px; /* Connects to next dot */
-  z-index: 1;
+  min-height: 40px;
 }
 
 .event-card {
-  transition: all 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .event-card:hover {
-  border-color: rgba(var(--v-theme-secondary), 0.5) !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .event-btn {
-  transition: background-color 0.2s;
+  color: rgb(var(--v-theme-secondary)) !important;
 }
-.event-card:hover .event-btn {
-  background-color: rgb(var(--v-theme-secondary)) !important;
-  color: white !important;
+
+.hover-underline:hover {
+  text-decoration: underline !important;
 }
 </style>

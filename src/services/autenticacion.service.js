@@ -3,6 +3,16 @@ import clienteApi from './api.service'
 const RUTA_AUTENTICACION = '/autenticacion'
 
 export const servicioAutenticacion = {
+  async solicitarOtp(datosPaciente) {
+    const respuesta = await clienteApi.post(`${RUTA_AUTENTICACION}/solicitar-otp`, datosPaciente)
+    return respuesta.data
+  },
+
+  async verificarOtp(datosVerificacion) {
+    const respuesta = await clienteApi.post(`${RUTA_AUTENTICACION}/verificar-otp`, datosVerificacion)
+    return respuesta.data
+  },
+
   async iniciarSesion(credenciales) {
     const respuesta = await clienteApi.post(`${RUTA_AUTENTICACION}/iniciar-sesion`, credenciales)
     return respuesta.data

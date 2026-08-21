@@ -2,57 +2,36 @@
   <LayoutPrincipal>
     <!-- Controles superiores -->
     <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between mb-6 border-b pb-4">
-      <div class="d-flex flex-wrap mb-4 mb-sm-0">
-        <div class="text-subtitle-1 font-weight-bold text-primary border-b-primary pb-1 mr-4 mb-2" style="border-bottom: 3px solid rgb(var(--v-theme-primary));">Mis citas</div>
-        <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary mr-4 mb-2">Agendar cita</div>
-        <div class="text-subtitle-1 text-grey-darken-1 cursor-pointer hover-text-primary mb-2">Historial de citas</div>
+      <div>
+        <h1 class="text-h5 font-weight-bold text-primary mb-1">Citas Médicas</h1>
+        <p class="text-caption text-grey-darken-1">Consulta y gestiona tu agenda de citas programadas en San Vicente Fundación</p>
       </div>
-      <v-btn color="secondary" rounded="pill" class="text-primary font-weight-bold px-6 text-none w-100 w-sm-auto mt-2 mt-sm-0" prepend-icon="mdi-plus" elevation="0" @click="abrirDialogoCrear">
-        Agendar nueva cita
+      <v-btn
+        color="primary"
+        rounded="pill"
+        variant="tonal"
+        class="font-weight-bold px-5 text-none mt-3 mt-sm-0"
+        prepend-icon="mdi-refresh"
+        :loading="almacenCitas.cargando"
+        @click="cargarCitas"
+      >
+        Actualizar agenda
       </v-btn>
     </div>
 
-    <!-- Filtros -->
+    <!-- Barra de Búsqueda -->
     <v-row class="mb-4">
-      <v-col cols="12" md="3" sm="6">
-        <v-select
-          label="Todas las citas"
-          :items="['Todas las citas', 'Próximas', 'Pasadas']"
-          variant="outlined"
-          density="comfortable"
-          bg-color="white"
-          hide-details
-          prepend-inner-icon="mdi-calendar-check-outline"
-        ></v-select>
-      </v-col>
-      <v-col cols="12" md="2" sm="6">
+      <v-col cols="12" sm="8" md="6">
         <v-text-field
-          label="Desde"
-          type="date"
+          v-model="filtroBusqueda"
+          placeholder="Buscar por médico, especialidad, consultorio..."
           variant="outlined"
           density="comfortable"
           bg-color="white"
+          rounded="lg"
           hide-details
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" md="2" sm="6">
-        <v-text-field
-          label="Hasta"
-          type="date"
-          variant="outlined"
-          density="comfortable"
-          bg-color="white"
-          hide-details
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" md="5" sm="6">
-        <v-text-field
-          placeholder="Buscar por médico, especialidad o sede..."
-          variant="outlined"
-          density="comfortable"
-          bg-color="white"
-          hide-details
-          append-inner-icon="mdi-magnify"
+          prepend-inner-icon="mdi-magnify"
+          clearable
         ></v-text-field>
       </v-col>
     </v-row>
@@ -60,266 +39,312 @@
     <v-row>
       <!-- Columna Principal: Lista de Citas -->
       <v-col cols="12" md="8">
-        
-        <div v-if="almacenCitas.cargando" class="text-center pa-10">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+        <!-- Cargando -->
+        <div v-if="almacenCitas.cargando" class="text-center pa-12 bg-white rounded-xl border">
+          <v-progress-circular indeterminate color="primary" size="48" width="4"></v-progress-circular>
+          <div class="text-body-2 text-grey-darken-1 mt-4">Consultando tu agenda médica en el sistema...</div>
         </div>
 
-        <div v-else-if="almacenCitas.listaCitas.length === 0" class="text-center pa-10 bg-white rounded-xl border">
-          <v-icon size="48" color="grey-lighten-1" class="mb-4">mdi-calendar-blank</v-icon>
-          <div class="text-h6 text-grey-darken-1">No tienes citas agendadas</div>
+        <!-- Sin citas -->
+        <div v-else-if="!citasFiltradas || citasFiltradas.length === 0" class="text-center pa-12 bg-white rounded-xl border">
+          <v-avatar color="#f4f9f1" size="72" class="mb-4 text-primary">
+            <v-icon size="40">mdi-calendar-check-outline</v-icon>
+          </v-avatar>
+          <div class="text-h6 font-weight-bold text-primary mb-1">No tienes citas programadas</div>
+          <div class="text-body-2 text-grey-darken-1 mb-4" style="max-width: 400px; margin: 0 auto;">
+            En este momento no cuentas con citas pendientes en tu agenda médica.
+          </div>
         </div>
 
         <template v-else>
-          <!-- Próximas Citas -->
-          <div v-if="proximaCita" class="mb-8">
-            <h3 class="text-subtitle-1 font-weight-bold text-primary mb-4">Próximas citas</h3>
-            
-            <v-card elevation="0" class="border rounded-xl d-flex overflow-hidden cita-card">
+          <!-- Próxima Cita Destacada -->
+          <div v-if="proximaCita" class="mb-6">
+            <div class="d-flex align-center justify-space-between mb-3">
+              <h2 class="text-subtitle-1 font-weight-bold text-primary d-flex align-center gap-2">
+                <v-icon color="secondary" size="20">mdi-star</v-icon>
+                Tu próxima cita más cercana
+              </h2>
+              <span class="text-caption text-grey-darken-1">Cita ID: {{ proximaCita.idCita || proximaCita.id }}</span>
+            </div>
+
+            <v-card elevation="0" class="border rounded-xl d-flex flex-column flex-sm-row overflow-hidden tarjeta-cita proxima-destacada">
               <!-- Bloque Fecha -->
-              <div class="bg-primary text-white d-flex flex-column align-center justify-center pa-4 text-center date-block" style="width: 110px; flex-shrink: 0;">
-                <div class="text-caption font-weight-bold text-uppercase opacity-80">{{ obtenerMes(proximaCita.fechaCita) }}</div>
-                <div class="text-h4 font-weight-black lh-1 my-1">{{ obtenerDia(proximaCita.fechaCita) }}</div>
-                <div class="text-caption font-weight-bold opacity-80">{{ obtenerAnio(proximaCita.fechaCita) }}</div>
+              <div class="bg-primary text-white d-flex flex-column align-center justify-center pa-4 text-center date-block" style="min-width: 110px;">
+                <div class="text-caption font-weight-bold text-uppercase opacity-80">{{ obtenerMes(proximaCita.fecha || proximaCita.fechaCita) }}</div>
+                <div class="text-h4 font-weight-black my-1">{{ obtenerDia(proximaCita.fecha || proximaCita.fechaCita) }}</div>
+                <div class="text-caption font-weight-bold opacity-80">{{ obtenerAnio(proximaCita.fecha || proximaCita.fechaCita) }}</div>
               </div>
 
               <!-- Bloque Detalles -->
               <div class="d-flex flex-column flex-sm-row align-start align-sm-center flex-grow-1 pa-5 bg-white gap-4">
-                <v-avatar color="green-lighten-5" size="64" class="mr-sm-5 border-secondary d-none d-sm-flex">
-                  <v-icon color="secondary" size="32">mdi-calendar-clock</v-icon>
-                </v-avatar>
-                
                 <div class="flex-grow-1">
-                  <div class="text-subtitle-1 font-weight-bold text-primary lh-1 mb-1">{{ proximaCita.especialidad || (proximaCita.tipoCita ? proximaCita.tipoCita.replace('_', ' ') : 'Consulta General') }}</div>
-                  <div class="text-body-2 text-grey-darken-3 mb-2">{{ proximaCita.medicoResponsable || 'Médico por asignar' }}</div>
-                  
-                  <div class="d-flex flex-wrap align-center gap-4 text-caption text-grey-darken-1 font-weight-medium">
+                  <div class="d-flex align-center gap-2 mb-1 flex-wrap">
+                    <span class="text-h6 font-weight-bold text-primary">{{ proximaCita.especialidad || 'Consulta Médica' }}</span>
+                    <v-chip
+                      size="x-small"
+                      :color="proximaCita.modoAtencion === 'Virtual' ? 'purple' : 'teal'"
+                      variant="tonal"
+                      class="font-weight-bold text-uppercase"
+                    >
+                      <v-icon start size="12">{{ proximaCita.modoAtencion === 'Virtual' ? 'mdi-video' : 'mdi-domain' }}</v-icon>
+                      {{ proximaCita.modoAtencion || 'Presencial' }}
+                    </v-chip>
+                  </div>
+
+                  <div class="text-body-2 font-weight-medium text-grey-darken-3 mb-3">
+                    <v-icon size="16" color="primary" class="mr-1">mdi-account-tie</v-icon>
+                    {{ proximaCita.medicoTratante || proximaCita.medicoResponsable || 'Médico Tratante' }}
+                  </div>
+
+                  <div class="d-flex flex-wrap align-center gap-4 text-caption text-grey-darken-1 font-weight-medium mb-3">
                     <div class="d-flex align-center gap-1">
                       <v-icon size="16" color="primary">mdi-clock-outline</v-icon>
-                      {{ proximaCita.horaInicio || '08:00' }} a. m.
+                      {{ formatearHora(proximaCita.hora || proximaCita.horaInicio) }}
                     </div>
-                    <div class="d-flex align-center gap-1">
+                    <div v-if="proximaCita.ubicacion || proximaCita.descUnidadEdificio" class="d-flex align-center gap-1">
                       <v-icon size="16" color="primary">mdi-map-marker-outline</v-icon>
-                      Sede Principal - Piso 2
+                      <span>{{ proximaCita.ubicacion }} {{ proximaCita.descUnidadEdificio ? '- ' + proximaCita.descUnidadEdificio : '' }}</span>
                     </div>
-                    <div class="d-flex align-center gap-1">
-                      <v-icon size="16" color="primary">mdi-door</v-icon>
-                      Consultorio {{ proximaCita.consultorio || '203' }}
+                    <div v-if="proximaCita.aseguradora" class="d-flex align-center gap-1">
+                      <v-icon size="16" color="primary">mdi-shield-check-outline</v-icon>
+                      <span>{{ proximaCita.aseguradora }}</span>
                     </div>
                   </div>
-                </div>
 
-                <div class="d-flex flex-row flex-sm-column align-center align-sm-end w-100 w-sm-auto justify-space-between mt-4 mt-sm-0">
-                  <v-chip :color="colorEstado(proximaCita.estado)" size="small" class="font-weight-bold text-uppercase px-4 mb-sm-2">
-                    {{ proximaCita.estado }}
-                  </v-chip>
-                  <v-btn icon="mdi-dots-vertical" aria-label="Más opciones" variant="text" color="grey-darken-1" size="small"></v-btn>
+                  <!-- Botón Cancelar Cita -->
+                  <div class="d-flex justify-end pt-1">
+                    <v-btn
+                      variant="tonal"
+                      color="error"
+                      size="small"
+                      rounded="pill"
+                      prepend-icon="mdi-calendar-remove"
+                      class="text-none font-weight-bold px-4"
+                      @click="abrirModalCancelar(proximaCita)"
+                    >
+                      Cancelar esta cita
+                    </v-btn>
+                  </div>
                 </div>
               </div>
             </v-card>
           </div>
 
-          <!-- Otras Citas -->
+          <!-- Resto de la Agenda -->
           <div v-if="otrasCitas.length > 0">
-            <h3 class="text-subtitle-1 font-weight-bold text-primary mb-4">Otras citas</h3>
-            
-            <v-card v-for="cita in otrasCitas" :key="cita.id" elevation="0" class="border rounded-xl d-flex overflow-hidden mb-3 cita-card">
+            <h2 class="text-subtitle-1 font-weight-bold text-primary mb-3">Otras citas agendadas ({{ otrasCitas.length }})</h2>
+
+            <v-card
+              v-for="cita in otrasCitas"
+              :key="cita.idCita || cita.id"
+              elevation="0"
+              class="border rounded-xl d-flex flex-column flex-sm-row overflow-hidden mb-3 tarjeta-cita"
+            >
               <!-- Bloque Fecha -->
-              <div class="bg-primary text-white d-flex flex-column align-center justify-center pa-2 text-center date-block" style="width: 80px; flex-shrink: 0;">
-                <div class="text-caption font-weight-bold text-uppercase opacity-80" style="font-size: 0.7rem !important;">{{ obtenerMes(cita.fechaCita) }}</div>
-                <div class="text-h5 font-weight-black lh-1 my-1">{{ obtenerDia(cita.fechaCita) }}</div>
-                <div class="text-caption font-weight-bold opacity-80" style="font-size: 0.7rem !important;">{{ obtenerAnio(cita.fechaCita) }}</div>
+              <div class="bg-grey-lighten-4 text-primary d-flex flex-column align-center justify-center pa-3 text-center date-block-light" style="min-width: 90px;">
+                <div class="text-caption font-weight-bold text-uppercase opacity-70">{{ obtenerMes(cita.fecha || cita.fechaCita) }}</div>
+                <div class="text-h5 font-weight-black my-1 text-primary">{{ obtenerDia(cita.fecha || cita.fechaCita) }}</div>
+                <div class="text-caption font-weight-bold opacity-70">{{ obtenerAnio(cita.fecha || cita.fechaCita) }}</div>
               </div>
 
               <!-- Bloque Detalles -->
               <div class="d-flex flex-column flex-sm-row align-start align-sm-center flex-grow-1 pa-4 bg-white gap-3">
-                <v-avatar color="green-lighten-5" size="50" class="mr-sm-4 d-none d-sm-flex">
-                  <v-icon color="secondary" size="24">{{ iconoEspecialidad(cita.especialidad) }}</v-icon>
-                </v-avatar>
-                
                 <div class="flex-grow-1">
-                  <div class="text-body-2 font-weight-bold text-primary lh-1 mb-1">{{ cita.especialidad || (cita.tipoCita ? cita.tipoCita.replace('_', ' ') : 'Consulta') }}</div>
-                  <div class="text-caption text-grey-darken-3 mb-1">{{ cita.medicoResponsable || 'Médico por asignar' }}</div>
-                  
-                  <div class="d-flex flex-wrap align-center gap-3 text-caption text-grey-darken-1">
+                  <div class="d-flex align-center gap-2 mb-1 flex-wrap">
+                    <span class="text-subtitle-1 font-weight-bold text-primary">{{ cita.especialidad || 'Consulta Médica' }}</span>
+                    <v-chip
+                      size="x-small"
+                      :color="cita.modoAtencion === 'Virtual' ? 'purple' : 'teal'"
+                      variant="tonal"
+                      class="font-weight-bold text-uppercase"
+                    >
+                      <v-icon start size="12">{{ cita.modoAtencion === 'Virtual' ? 'mdi-video' : 'mdi-domain' }}</v-icon>
+                      {{ cita.modoAtencion || 'Presencial' }}
+                    </v-chip>
+                  </div>
+
+                  <div class="text-body-2 text-grey-darken-3 mb-2">
+                    <v-icon size="15" color="primary" class="mr-1">mdi-account-tie</v-icon>
+                    {{ cita.medicoTratante || cita.medicoResponsable || 'Médico Tratante' }}
+                  </div>
+
+                  <div class="d-flex flex-wrap align-center gap-3 text-caption text-grey-darken-1 mb-2">
                     <div class="d-flex align-center gap-1">
-                      <v-icon size="14" color="grey">mdi-clock-outline</v-icon>
-                      {{ cita.horaInicio || '10:00' }} a. m.
+                      <v-icon size="14" color="primary">mdi-clock-outline</v-icon>
+                      {{ formatearHora(cita.hora || cita.horaInicio) }}
                     </div>
-                    <div class="d-flex align-center gap-1">
-                      <v-icon size="14" color="grey">mdi-map-marker-outline</v-icon>
-                      Sede Principal
+                    <div v-if="cita.ubicacion || cita.descUnidadEdificio" class="d-flex align-center gap-1">
+                      <v-icon size="14" color="primary">mdi-map-marker-outline</v-icon>
+                      <span>{{ cita.ubicacion }} {{ cita.descUnidadEdificio ? '- ' + cita.descUnidadEdificio : '' }}</span>
+                    </div>
+                    <div v-if="cita.aseguradora" class="d-flex align-center gap-1">
+                      <v-icon size="14" color="primary">mdi-shield-check-outline</v-icon>
+                      <span>{{ cita.aseguradora }}</span>
                     </div>
                   </div>
-                </div>
 
-                <div class="d-flex flex-row flex-sm-column align-center align-sm-end gap-2 w-100 w-sm-auto justify-space-between mt-3 mt-sm-0">
-                  <v-chip :color="colorEstado(cita.estado)" size="small" variant="tonal" class="font-weight-bold text-uppercase px-3">
-                    {{ cita.estado }}
-                  </v-chip>
-                  <v-btn icon="mdi-chevron-right" aria-label="Ver detalle de cita" variant="text" color="grey-darken-1" size="small"></v-btn>
+                  <!-- Botón Cancelar -->
+                  <div class="d-flex justify-end pt-1">
+                    <v-btn
+                      variant="tonal"
+                      color="error"
+                      size="small"
+                      rounded="pill"
+                      prepend-icon="mdi-calendar-remove"
+                      class="text-none font-weight-bold px-3"
+                      @click="abrirModalCancelar(cita)"
+                    >
+                      Cancelar cita
+                    </v-btn>
+                  </div>
                 </div>
               </div>
             </v-card>
           </div>
-
-          <div class="text-center mt-6">
-            <v-btn variant="text" color="primary" class="font-weight-bold text-none" append-icon="mdi-chevron-down">
-              Ver todas mis citas
-            </v-btn>
-          </div>
         </template>
       </v-col>
 
-      <!-- Columna Lateral: Widgets -->
+      <!-- Columna Lateral: Información de Apoyo -->
       <v-col cols="12" md="4">
-        
-        <!-- Widget: Agendar cita rápida -->
+        <!-- Tarjeta de Información -->
         <v-card elevation="0" class="border rounded-xl bg-white mb-4">
           <v-card-text class="pa-5">
-            <h3 class="text-subtitle-1 font-weight-bold text-primary mb-1">Agendar cita rápida</h3>
-            <p class="text-caption text-grey-darken-1 mb-4">Encuentra el especialista que necesitas</p>
-            
-            <v-select label="Especialidad" :items="['Medicina General', 'Odontología', 'Cardiología']" variant="outlined" density="compact" prepend-inner-icon="mdi-stethoscope" hide-details class="mb-3"></v-select>
-            <v-select label="Sede" :items="['Sede Principal', 'Sede Norte', 'Sede Sur']" variant="outlined" density="compact" prepend-inner-icon="mdi-map-marker-outline" hide-details class="mb-3"></v-select>
-            <v-select label="Fecha preferida" :items="['Lo antes posible', 'Esta semana', 'Próxima semana']" variant="outlined" density="compact" prepend-inner-icon="mdi-calendar-outline" hide-details class="mb-4"></v-select>
-            
-            <v-btn color="secondary" block rounded="lg" class="text-primary font-weight-bold text-none" elevation="0">
-              <v-icon start>mdi-magnify</v-icon> Buscar disponibilidad
-            </v-btn>
-          </v-card-text>
-        </v-card>
+            <h3 class="text-subtitle-1 font-weight-bold text-primary mb-3 d-flex align-center gap-2">
+              <v-icon color="primary" size="20">mdi-information-outline</v-icon>
+              Recomendaciones
+            </h3>
 
-        <!-- Widget: Accesos rápidos -->
-        <v-card elevation="0" class="border rounded-xl bg-white mb-4">
-          <v-card-text class="pa-5">
-            <h3 class="text-subtitle-1 font-weight-bold text-primary mb-4">Accesos rápidos</h3>
-            
-            <v-list class="pa-0 bg-transparent">
-              <v-list-item class="px-0 py-2 border-b-light cursor-pointer hover-bg">
+            <v-list density="compact" class="pa-0 bg-transparent">
+              <v-list-item class="px-0 py-2">
                 <template v-slot:prepend>
-                  <v-avatar color="green-lighten-5" size="40" class="mr-3">
-                    <v-icon color="primary" size="20">mdi-clipboard-text-outline</v-icon>
+                  <v-avatar color="#f4f9f1" size="32" class="mr-3">
+                    <v-icon size="16" color="secondary">mdi-clock-fast</v-icon>
                   </v-avatar>
                 </template>
-                <v-list-item-title class="text-body-2 font-weight-bold text-primary">Preparación para tu cita</v-list-item-title>
-                <v-list-item-subtitle class="text-caption text-grey-darken-1">Recomendaciones importantes</v-list-item-subtitle>
-                <template v-slot:append><v-icon size="16" color="grey-darken-1">mdi-chevron-right</v-icon></template>
+                <v-list-item-title class="text-caption font-weight-bold">Puntualidad</v-list-item-title>
+                <v-list-item-subtitle class="text-caption text-grey-darken-1">Presentarse 20 minutos antes de la hora programada.</v-list-item-subtitle>
               </v-list-item>
 
-              <v-list-item class="px-0 py-2 border-b-light cursor-pointer hover-bg">
+              <v-list-item class="px-0 py-2">
                 <template v-slot:prepend>
-                  <v-avatar color="green-lighten-5" size="40" class="mr-3">
-                    <v-icon color="primary" size="20">mdi-calendar-remove-outline</v-icon>
+                  <v-avatar color="#f4f9f1" size="32" class="mr-3">
+                    <v-icon size="16" color="secondary">mdi-card-account-details-outline</v-icon>
                   </v-avatar>
                 </template>
-                <v-list-item-title class="text-body-2 font-weight-bold text-primary">Reagendar o cancelar</v-list-item-title>
-                <v-list-item-subtitle class="text-caption text-grey-darken-1">Gestiona tus citas fácilmente</v-list-item-subtitle>
-                <template v-slot:append><v-icon size="16" color="grey-darken-1">mdi-chevron-right</v-icon></template>
+                <v-list-item-title class="text-caption font-weight-bold">Documentos</v-list-item-title>
+                <v-list-item-subtitle class="text-caption text-grey-darken-1">Llevar tu documento de identidad y autorización de tu EPS si aplica.</v-list-item-subtitle>
               </v-list-item>
 
-              <v-list-item class="px-0 py-2 border-b-light cursor-pointer hover-bg">
+              <v-list-item class="px-0 py-2">
                 <template v-slot:prepend>
-                  <v-avatar color="green-lighten-5" size="40" class="mr-3">
-                    <v-icon color="primary" size="20">mdi-help-circle-outline</v-icon>
+                  <v-avatar color="#f4f9f1" size="32" class="mr-3">
+                    <v-icon size="16" color="secondary">mdi-video-check</v-icon>
                   </v-avatar>
                 </template>
-                <v-list-item-title class="text-body-2 font-weight-bold text-primary">Preguntas frecuentes</v-list-item-title>
-                <v-list-item-subtitle class="text-caption text-grey-darken-1">Resuelve tus dudas</v-list-item-subtitle>
-                <template v-slot:append><v-icon size="16" color="grey-darken-1">mdi-chevron-right</v-icon></template>
-              </v-list-item>
-
-              <v-list-item class="px-0 py-2 cursor-pointer hover-bg">
-                <template v-slot:prepend>
-                  <v-avatar color="green-lighten-5" size="40" class="mr-3">
-                    <v-icon color="primary" size="20">mdi-phone-outline</v-icon>
-                  </v-avatar>
-                </template>
-                <v-list-item-title class="text-body-2 font-weight-bold text-primary">Contáctanos</v-list-item-title>
-                <v-list-item-subtitle class="text-caption text-grey-darken-1">Estamos para ayudarte</v-list-item-subtitle>
-                <template v-slot:append><v-icon size="16" color="grey-darken-1">mdi-chevron-right</v-icon></template>
+                <v-list-item-title class="text-caption font-weight-bold">Citas Virtuales</v-list-item-title>
+                <v-list-item-subtitle class="text-caption text-grey-darken-1">Verifica tu conexión y cámara antes de iniciar la teleconsulta.</v-list-item-subtitle>
               </v-list-item>
             </v-list>
-
           </v-card-text>
         </v-card>
 
-        <!-- Banner Alerta -->
-        <v-card elevation="0" class="border rounded-xl bg-white d-flex align-center pa-4">
-          <v-avatar color="green-lighten-5" size="56" class="mr-4">
-            <v-icon color="secondary" size="28">mdi-calendar-check</v-icon>
-          </v-avatar>
-          <div class="flex-grow-1">
-            <div class="text-subtitle-2 font-weight-bold text-primary mb-1">¡No olvides tu cita!</div>
-            <div class="text-caption text-grey-darken-1" style="line-height: 1.2;">Llega 15 minutos antes y lleva tu documento de identidad.</div>
+        <!-- Sede y Contacto -->
+        <v-card elevation="0" class="border rounded-xl bg-white pa-5">
+          <h3 class="text-subtitle-1 font-weight-bold text-primary mb-2">Línea de Atención</h3>
+          <p class="text-caption text-grey-darken-1 mb-4">
+            Para dudas sobre tus citas o reprogramaciones, comunícate con nuestras líneas de atención:
+          </p>
+          <div class="d-flex align-center gap-2 text-body-2 font-weight-bold text-primary mb-2">
+            <v-icon size="18" color="secondary">mdi-phone</v-icon>
+            <span>(604) 444 13 33 (Medellín)</span>
           </div>
-          <v-btn icon="mdi-close" variant="text" size="small" color="grey"></v-btn>
+          <div class="d-flex align-center gap-2 text-body-2 font-weight-bold text-primary">
+            <v-icon size="18" color="secondary">mdi-phone</v-icon>
+            <span>(604) 569 88 88 (Rionegro)</span>
+          </div>
         </v-card>
-
       </v-col>
     </v-row>
 
-    <!-- Diálogo crear cita -->
-    <v-dialog v-model="dialogoVisible" max-width="650" persistent scrollable>
+    <!-- Diálogo Modal de Cancelación de Cita con Auditoría -->
+    <v-dialog v-model="dialogoCancelarVisible" max-width="540" persistent>
       <v-card rounded="xl">
-        <v-card-title class="d-flex align-center pa-5 bg-primary text-white">
-          <v-icon color="white" class="mr-2">mdi-calendar-plus</v-icon>
-          Nueva Cita
+        <v-card-title class="d-flex align-center pa-5 bg-red-lighten-5 text-red-darken-4">
+          <v-avatar color="red-lighten-4" size="36" class="mr-3">
+            <v-icon color="red-darken-3" size="20">mdi-calendar-remove</v-icon>
+          </v-avatar>
+          <span class="text-subtitle-1 font-weight-bold">Cancelar Cita Médica</span>
           <v-spacer />
-          <v-btn icon="mdi-close" variant="text" color="white" @click="cerrarDialogo" />
+          <v-btn icon="mdi-close" variant="text" size="small" color="grey-darken-1" @click="cerrarModalCancelar" />
         </v-card-title>
-        <v-divider />
+
         <v-card-text class="pa-5">
-          <v-form ref="refFormulario" v-model="formularioValido">
-            <v-row>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="formulario.pacienteId"
-                  label="ID del Paciente *"
-                  placeholder="UUID del paciente"
-                  :rules="[(v) => !!v || 'El ID del paciente es requerido']"
-                  hint="Puedes obtener el ID desde la lista de pacientes"
-                  persistent-hint
-                  variant="outlined" color="primary"
-                />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field v-model="formulario.fechaCita" label="Fecha *" type="date"
-                  :rules="[(v) => !!v || 'La fecha es requerida']" variant="outlined" color="primary" />
-              </v-col>
-              <v-col cols="6" sm="3">
-                <v-text-field v-model="formulario.horaInicio" label="Hora inicio *" type="time"
-                  :rules="[(v) => !!v || 'Requerido']" variant="outlined" color="primary" />
-              </v-col>
-              <v-col cols="6" sm="3">
-                <v-text-field v-model="formulario.horaFin" label="Hora fin *" type="time"
-                  :rules="[(v) => !!v || 'Requerido']" variant="outlined" color="primary" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-select v-model="formulario.tipoCita" label="Tipo de cita" :items="tiposCita" variant="outlined" color="primary" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field v-model="formulario.medicoResponsable" label="Médico responsable" variant="outlined" color="primary" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field v-model="formulario.especialidad" label="Especialidad" variant="outlined" color="primary" />
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field v-model="formulario.consultorio" label="Consultorio" variant="outlined" color="primary" />
-              </v-col>
-              <v-col cols="12">
-                <v-textarea v-model="formulario.motivoConsulta" label="Motivo de consulta" rows="2" variant="outlined" color="primary" />
-              </v-col>
-            </v-row>
+          <!-- Resumen de la cita a cancelar -->
+          <div v-if="citaSeleccionada" class="pa-4 bg-grey-lighten-4 rounded-lg mb-4 border">
+            <div class="text-subtitle-2 font-weight-bold text-primary mb-1">
+              {{ citaSeleccionada.especialidad || 'Consulta Médica' }}
+            </div>
+            <div class="text-caption text-grey-darken-2 mb-1">
+              <strong>Médico:</strong> {{ citaSeleccionada.medicoTratante || citaSeleccionada.medicoResponsable || 'Médico Tratante' }}
+            </div>
+            <div class="text-caption text-grey-darken-2 mb-1">
+              <strong>Fecha y Hora:</strong> {{ citaSeleccionada.fecha }} a las {{ formatearHora(citaSeleccionada.hora) }}
+            </div>
+            <div v-if="citaSeleccionada.ubicacion || citaSeleccionada.descUnidadEdificio" class="text-caption text-grey-darken-2">
+              <strong>Lugar:</strong> {{ citaSeleccionada.ubicacion }} {{ citaSeleccionada.descUnidadEdificio ? '- ' + citaSeleccionada.descUnidadEdificio : '' }}
+            </div>
+          </div>
+
+          <v-form ref="refFormCancelacion" v-model="formCancelacionValido">
+            <!-- Selector de Motivo Oficial SAP -->
+            <v-select
+              v-model="formularioCancelacion.idMotivo"
+              label="Motivo de cancelación *"
+              :items="motivosCancelacion"
+              item-title="texto"
+              item-value="valor"
+              :rules="[(v) => !!v || 'Debe seleccionar un motivo de cancelación']"
+              variant="outlined"
+              density="comfortable"
+              color="primary"
+              class="mb-3"
+            ></v-select>
+
+            <!-- Observaciones Adicionales -->
+            <v-textarea
+              v-model="formularioCancelacion.observaciones"
+              label="Observaciones o comentarios adicionales (opcional)"
+              placeholder="Explica brevemente la razón de la cancelación..."
+              variant="outlined"
+              density="comfortable"
+              color="primary"
+              rows="3"
+              hide-details
+            ></v-textarea>
           </v-form>
+
+          <v-alert type="warning" variant="tonal" density="compact" class="mt-4 text-caption" rounded="lg">
+            Esta acción liberará el espacio en la agenda médica de la institución. Quedará registro de auditoría de esta solicitud.
+          </v-alert>
         </v-card-text>
+
         <v-divider />
-        <v-card-actions class="pa-5 bg-grey-lighten-4">
+
+        <v-card-actions class="pa-4 bg-grey-lighten-5">
           <v-spacer />
-          <v-btn variant="text" @click="cerrarDialogo" class="text-none">Cancelar</v-btn>
-          <v-btn color="secondary" class="text-primary font-weight-bold px-6 text-none" rounded="pill" elevation="0" :loading="almacenCitas.cargando"
-            :disabled="!formularioValido" @click="guardarCita">
-            Confirmar cita
+          <v-btn variant="text" @click="cerrarModalCancelar" class="text-none font-weight-medium">
+            Volver
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="pill"
+            class="text-none font-weight-bold px-5"
+            :loading="procesandoCancelacion"
+            :disabled="!formularioCancelacion.idMotivo"
+            @click="confirmarCancelacionCita"
+          >
+            Confirmar cancelación
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -334,156 +359,183 @@ import { useAlmacenCitas } from '../../stores/citas.store'
 import { usarAlertas } from '../../composables/usarAlertas'
 
 const almacenCitas = useAlmacenCitas()
-const { confirmarEliminacion, confirmarCancelacion, mostrarExito, mostrarError } = usarAlertas()
+const { mostrarExito, mostrarError } = usarAlertas()
 
-const dialogoVisible = ref(false)
-const formularioValido = ref(false)
-const refFormulario = ref(null)
+const filtroBusqueda = ref('')
 
-const tiposCita = ['consulta_general', 'especialista', 'urgencias', 'control', 'procedimiento']
+// Modal y Cancelación
+const dialogoCancelarVisible = ref(false)
+const citaSeleccionada = ref(null)
+const procesandoCancelacion = ref(false)
+const formCancelacionValido = ref(false)
+const refFormCancelacion = ref(null)
 
-const formulario = reactive({
-  pacienteId: '', fechaCita: '', horaInicio: '', horaFin: '',
-  tipoCita: 'consulta_general', medicoResponsable: '',
-  especialidad: '', consultorio: '', motivoConsulta: '',
+const motivosCancelacion = [
+  { valor: 'M11', texto: 'Paciente no puede asistir / No acepta cita' },
+  { valor: 'M02', texto: 'Condición clínica del paciente' },
+  { valor: 'M09', texto: 'Mejoría en el estado de salud' },
+  { valor: 'N22', texto: 'No preparado para la cita/consulta' },
+  { valor: 'N23', texto: 'Paciente hospitalizado' },
+  { valor: 'N26', texto: 'Inconvenientes de transporte o económicos' },
+]
+
+const formularioCancelacion = reactive({
+  idMotivo: 'M11',
+  observaciones: '',
 })
 
-// Computed para mostrar datos visuales en el dashboard
+function abrirModalCancelar(cita) {
+  citaSeleccionada.value = cita
+  formularioCancelacion.idMotivo = 'M11'
+  formularioCancelacion.observaciones = ''
+  dialogoCancelarVisible.value = true
+}
+
+function cerrarModalCancelar() {
+  dialogoCancelarVisible.value = false
+  citaSeleccionada.value = null
+}
+
+async function confirmarCancelacionCita() {
+  if (!citaSeleccionada.value) return
+
+  procesandoCancelacion.value = true
+  try {
+    const idCita = citaSeleccionada.value.idCita || citaSeleccionada.value.id
+
+    const respuesta = await almacenCitas.cancelarCitaSap({
+      idCita,
+      idMotivo: formularioCancelacion.idMotivo,
+      observaciones: formularioCancelacion.observaciones,
+      datosCita: { ...citaSeleccionada.value },
+    })
+
+    await mostrarExito(respuesta?.mensaje || 'La cita ha sido cancelada exitosamente.')
+    cerrarModalCancelar()
+  } catch (error) {
+    const mensaje = error.response?.data?.message || error.message || 'No fue posible cancelar la cita.'
+    mostrarError(mensaje)
+  } finally {
+    procesandoCancelacion.value = false
+  }
+}
+
+const citasFiltradas = computed(() => {
+  let resultado = Array.isArray(almacenCitas.listaCitas) ? almacenCitas.listaCitas : []
+
+  if (filtroBusqueda.value && filtroBusqueda.value.trim() !== '') {
+    const q = filtroBusqueda.value.toLowerCase()
+    resultado = resultado.filter(c => {
+      const esp = (c.especialidad || '').toLowerCase()
+      const med = (c.medicoTratante || c.medicoResponsable || '').toLowerCase()
+      const ubi = (c.ubicacion || '').toLowerCase()
+      const uni = (c.descUnidadEdificio || '').toLowerCase()
+      const aseguradora = (c.aseguradora || '').toLowerCase()
+      return esp.includes(q) || med.includes(q) || ubi.includes(q) || uni.includes(q) || aseguradora.includes(q)
+    })
+  }
+
+  return resultado
+})
+
 const proximaCita = computed(() => {
-  if (almacenCitas.listaCitas && almacenCitas.listaCitas.length > 0) {
-    // Tomamos la primera cita como próxima
-    return almacenCitas.listaCitas[0]
+  if (citasFiltradas.value && citasFiltradas.value.length > 0) {
+    return citasFiltradas.value[0]
   }
   return null
 })
 
 const otrasCitas = computed(() => {
-  if (almacenCitas.listaCitas && almacenCitas.listaCitas.length > 1) {
-    // Tomamos el resto de citas para la lista inferior
-    return almacenCitas.listaCitas.slice(1)
+  if (citasFiltradas.value && citasFiltradas.value.length > 1) {
+    return citasFiltradas.value.slice(1)
   }
   return []
 })
 
-// Funciones de utilidad visual
 const mesesCortos = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
 
 function obtenerMes(fecha) {
-  if (!fecha) return 'ENE'
-  const obj = new Date(fecha + 'T00:00:00')
-  return mesesCortos[obj.getMonth()]
+  if (!fecha) return '---'
+  const partes = fecha.split('-')
+  if (partes.length === 3) {
+    const mesIndex = parseInt(partes[1], 10) - 1
+    return mesesCortos[mesIndex] || '---'
+  }
+  const obj = new Date(fecha)
+  return isNaN(obj.getTime()) ? '---' : mesesCortos[obj.getMonth()]
 }
 
 function obtenerDia(fecha) {
-  if (!fecha) return '01'
-  const obj = new Date(fecha + 'T00:00:00')
-  return String(obj.getDate()).padStart(2, '0')
+  if (!fecha) return '--'
+  const partes = fecha.split('-')
+  if (partes.length === 3) {
+    return partes[2]
+  }
+  const obj = new Date(fecha)
+  return isNaN(obj.getTime()) ? '--' : String(obj.getDate()).padStart(2, '0')
 }
 
 function obtenerAnio(fecha) {
-  if (!fecha) return '2024'
-  const obj = new Date(fecha + 'T00:00:00')
-  return obj.getFullYear()
-}
-
-function colorEstado(estado) {
-  const colores = {
-    programada: '#e0e0e0', confirmada: '#e8f5e9', en_atencion: '#fff8e1',
-    completada: '#e8f5e9', cancelada: '#ffebee', no_asistio: '#f5f5f5',
+  if (!fecha) return '----'
+  const partes = fecha.split('-')
+  if (partes.length === 3) {
+    return partes[0]
   }
-  return colores[estado] || '#f5f5f5'
+  const obj = new Date(fecha)
+  return isNaN(obj.getTime()) ? '----' : String(obj.getFullYear())
 }
 
-function iconoEspecialidad(especialidad) {
-  const especialidadLower = (especialidad || '').toLowerCase()
-  if (especialidadLower.includes('odontología') || especialidadLower.includes('dental')) return 'mdi-tooth'
-  if (especialidadLower.includes('cardiología') || especialidadLower.includes('corazón')) return 'mdi-heart-pulse'
-  if (especialidadLower.includes('oftalmología') || especialidadLower.includes('ojos')) return 'mdi-eye-outline'
-  if (especialidadLower.includes('pediatría') || especialidadLower.includes('niños')) return 'mdi-baby-face-outline'
-  return 'mdi-stethoscope' // default
-}
-
-function limpiarFormulario() {
-  Object.assign(formulario, {
-    pacienteId: '', fechaCita: '', horaInicio: '', horaFin: '',
-    tipoCita: 'consulta_general', medicoResponsable: '',
-    especialidad: '', consultorio: '', motivoConsulta: '',
-  })
-  refFormulario.value?.reset()
-}
-
-function abrirDialogoCrear() {
-  limpiarFormulario()
-  dialogoVisible.value = true
-}
-
-function cerrarDialogo() {
-  dialogoVisible.value = false
-  limpiarFormulario()
-}
-
-async function guardarCita() {
-  const { valid } = await refFormulario.value.validate()
-  if (!valid) return
-  try {
-    await almacenCitas.crearCita({ ...formulario })
-    await mostrarExito('Cita creada correctamente')
-    cerrarDialogo()
-  } catch (err) {
-    mostrarError(err.response?.data?.message || 'Error al crear la cita')
+function formatearHora(hora) {
+  if (!hora) return 'Por definir'
+  const partes = hora.split(':')
+  if (partes.length >= 2) {
+    let horas = parseInt(partes[0], 10)
+    const minutos = partes[1]
+    const ampm = horas >= 12 ? 'p. m.' : 'a. m.'
+    horas = horas % 12
+    horas = horas ? horas : 12
+    return `${String(horas).padStart(2, '0')}:${minutos} ${ampm}`
   }
+  return hora
+}
+
+async function cargarCitas() {
+  await almacenCitas.obtenerMisCitas()
 }
 
 onMounted(() => {
-  almacenCitas.obtenerCitas(1, 10)
+  cargarCitas()
 })
 </script>
 
 <style scoped>
 .border {
-  border: 1px solid #EAECEF !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
 .border-b {
-  border-bottom: 1px solid #EAECEF !important;
+  border-bottom: 1px solid #e2e8f0 !important;
 }
 
-.border-b-light {
-  border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+.tarjeta-cita {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.border-secondary {
-  border: 2px solid rgb(var(--v-theme-secondary));
-}
-
-.lh-1 {
-  line-height: 1.1 !important;
-}
-
-.hover-text-primary:hover {
-  color: rgb(var(--v-theme-primary)) !important;
-}
-
-.hover-bg:hover {
-  background-color: #f6f8f9;
-  border-radius: 8px;
-}
-
-.cita-card {
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.cita-card:hover {
+.tarjeta-cita:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05) !important;
+}
+
+.proxima-destacada {
+  border-color: rgba(var(--v-theme-primary), 0.3) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
 }
 
 .date-block {
-  border-right: 1px dashed rgba(255,255,255,0.3);
+  border-right: 1px dashed rgba(255, 255, 255, 0.3);
 }
 
-/* Ajustes de select y text-field transparentes en el sidebar */
-.v-field__overlay {
-  background-color: transparent !important;
+.date-block-light {
+  border-right: 1px dashed #cbd5e1;
 }
 </style>

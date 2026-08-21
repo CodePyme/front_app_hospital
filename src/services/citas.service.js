@@ -3,6 +3,16 @@ import clienteApi from './api.service'
 const RUTA_CITAS = '/citas'
 
 export const servicioCitas = {
+  async obtenerMisCitas() {
+    const respuesta = await clienteApi.get(`${RUTA_CITAS}/mis-citas`)
+    return respuesta.data
+  },
+
+  async cancelarCitaSap(datos) {
+    const respuesta = await clienteApi.post(`${RUTA_CITAS}/cancelar`, datos)
+    return respuesta.data
+  },
+
   async obtenerTodas(pagina = 1, limite = 10) {
     const respuesta = await clienteApi.get(RUTA_CITAS, {
       params: { pagina, limite },
