@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://portal.runasalud.com/sitemap.xml
+Sitemap: https://portalpacientesf.codepyme.io/sitemap.xml
