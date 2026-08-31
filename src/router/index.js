@@ -45,8 +45,7 @@ const rutas = [
   {
     path: '/historia',
     name: 'historia',
-    component: () => import('../views/historia/HistoriaClinica.vue'),
-    meta: { requiereAutenticacion: true },
+    redirect: '/',
   },
   {
     path: '/medicamentos',

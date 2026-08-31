@@ -850,10 +850,36 @@ function generarPdfVectorialDirecto(examen, pacienteAuth) {
 }
 
 /**
- * Abre el cuadro de diálogo de impresión para imprimir inmediatamente en papel
+ * Imprime directamente el PDF original devuelto por Labcore (en Base64 o URL)
  */
-function imprimirResultado() {
-  if (examenSeleccionado.value) {
+async function imprimirResultado() {
+  if (!examenSeleccionado.value) return
+  cargandoPdf.value = true
+  try {
+    const urlPdf = examenSeleccionado.value.pdfUrl
+
+    // 1. Si tenemos el PDF original de Labcore en Base64 directamente
+    if (urlPdf && (urlPdf.startsWith('JVBERi') || urlPdf.startsWith('data:application/pdf') || (!urlPdf.includes('/') && urlPdf.length > 100))) {
+      const limpiaBase64 = urlPdf.replace(/^data:application\/pdf;base64,/, '')
+      const blob = base64ToBlob(limpiaBase64, 'application/pdf')
+      const blobUrl = URL.createObjectURL(blob)
+      imprimirBlobDirecto(blobUrl)
+      return
+    }
+
+    // 2. Si tenemos una URL válida de Labcore
+    if (urlPdf && !urlPdf.includes('id=0') && !urlPdf.endsWith('urlKey=')) {
+      try {
+        const blob = await servicioResultados.descargarPdfBlob(urlPdf)
+        const blobUrl = URL.createObjectURL(blob)
+        imprimirBlobDirecto(blobUrl)
+        return
+      } catch (errBlob) {
+        console.warn('Error imprimiendo PDF original de Labcore:', errBlob)
+      }
+    }
+
+    // 3. Fallback: Si no hay binario PDF devuelto por Labcore, imprimir plantilla con datos de analitos
     const htmlReporte = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Impresion_Laboratorio</title></head><body>${obtenerHtmlPlantillaInforme(examenSeleccionado.value, almacenAuth.paciente || almacenAuth.usuario)}</body></html>`
     const ventanaPrint = window.open('', '_blank')
     if (ventanaPrint) {
@@ -863,8 +889,35 @@ function imprimirResultado() {
         ventanaPrint.print()
       }, 400)
     }
-  } else {
-    window.print()
+  } finally {
+    cargandoPdf.value = false
+  }
+}
+
+function base64ToBlob(base64, type = 'application/pdf') {
+  const binario = atob(base64)
+  const bytes = new Uint8Array(binario.length)
+  for (let i = 0; i < binario.length; i++) {
+    bytes[i] = binario.charCodeAt(i)
+  }
+  return new Blob([bytes], { type })
+}
+
+function imprimirBlobDirecto(blobUrl) {
+  const iframe = document.createElement('iframe')
+  iframe.style.position = 'fixed'
+  iframe.style.right = '0'
+  iframe.style.bottom = '0'
+  iframe.style.width = '0'
+  iframe.style.height = '0'
+  iframe.style.border = '0'
+  iframe.src = blobUrl
+  document.body.appendChild(iframe)
+  iframe.onload = function () {
+    setTimeout(() => {
+      iframe.contentWindow.focus()
+      iframe.contentWindow.print()
+    }, 300)
   }
 }
 
