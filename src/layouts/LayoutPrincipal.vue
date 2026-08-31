@@ -81,17 +81,9 @@
             </template>
           </v-list-item>
         </template>
-
-        <!-- Cerrar sesión -->
-        <v-list-item
-          prepend-icon="mdi-logout"
-          title="Cerrar sesión"
-          rounded="xl"
-          class="text-white font-weight-medium mt-4 item-menu-lateral"
-          @click="confirmarCierreSesion"
-        />
       </v-list>
 
+      <!--
       <template v-slot:append>
         <div class="pa-4" v-if="!rielesModo">
           <v-card color="primary-darken-1" rounded="xl" elevation="0" class="pa-4 text-white text-center border">
@@ -106,6 +98,7 @@
           </v-card>
         </div>
       </template>
+      -->
     </v-navigation-drawer>
 
     <!-- Barra superior -->
@@ -123,24 +116,75 @@
             </v-badge>
           </v-btn>
 
-          <!-- Perfil usuario -->
-          <div class="d-flex align-center gap-2 cursor-pointer bg-white px-2 px-md-3 py-1 rounded-pill border">
-            <v-avatar color="green-lighten-5" size="32" class="d-md-none">
-              <v-icon color="primary" size="20">mdi-account-outline</v-icon>
-            </v-avatar>
-            <v-avatar color="green-lighten-5" size="36" class="d-none d-md-flex">
-              <v-icon color="primary">mdi-account-outline</v-icon>
-            </v-avatar>
-            <div class="d-none d-sm-block">
-              <div class="text-body-2 font-weight-bold text-grey-darken-3" style="line-height:1.2">
-                {{ almacenAuth.nombreCompleto }}
+          <!-- Perfil usuario con menú desplegable -->
+          <v-menu location="bottom end" transition="scale-transition">
+            <template v-slot:activator="{ props }">
+              <div
+                v-bind="props"
+                class="d-flex align-center gap-2 cursor-pointer bg-white px-2 px-md-3 py-1 rounded-pill border"
+              >
+                <v-avatar color="green-lighten-5" size="32" class="d-md-none">
+                  <v-icon color="primary" size="20">mdi-account-outline</v-icon>
+                </v-avatar>
+                <v-avatar color="green-lighten-5" size="36" class="d-none d-md-flex">
+                  <v-icon color="primary">mdi-account-outline</v-icon>
+                </v-avatar>
+                <div class="d-none d-sm-block">
+                  <div class="text-body-2 font-weight-bold text-grey-darken-3" style="line-height:1.2">
+                    {{ almacenAuth.nombreCompleto }}
+                  </div>
+                  <div class="text-caption text-grey-darken-1" style="line-height:1.2">
+                    {{ almacenAuth.rolUsuario === 'administrador' ? 'Super Admin' : 'Paciente' }}
+                  </div>
+                </div>
+                <v-icon size="20" color="grey-darken-2">mdi-chevron-down</v-icon>
               </div>
-              <div class="text-caption text-grey-darken-1" style="line-height:1.2">
-                {{ almacenAuth.rolUsuario === 'administrador' ? 'Super Admin' : 'Paciente' }}
-              </div>
-            </div>
-            <v-icon size="20" color="grey-darken-2">mdi-chevron-down</v-icon>
-          </div>
+            </template>
+
+            <v-list class="mt-2 rounded-lg py-2" width="220" elevation="3">
+              <v-list-item class="px-4 py-2 mb-1">
+                <div class="text-subtitle-2 font-weight-bold text-grey-darken-3">
+                  {{ almacenAuth.nombreCompleto }}
+                </div>
+                <div class="text-caption text-grey-darken-1">
+                  {{ almacenAuth.usuario?.correoElectronico || almacenAuth.usuario?.documentoIdentidad }}
+                </div>
+              </v-list-item>
+
+              <v-divider class="my-1 border-opacity-25" />
+
+              <template v-if="esAdmin">
+                <v-list-item
+                  prepend-icon="mdi-palette-outline"
+                  title="Configuración"
+                  to="/configuracion"
+                  rounded="lg"
+                  class="mx-1"
+                />
+              </template>
+
+              <template v-if="esSuperAdmin">
+                <v-list-item
+                  prepend-icon="mdi-domain"
+                  title="Tenants"
+                  to="/tenants"
+                  rounded="lg"
+                  class="mx-1"
+                />
+              </template>
+
+              <v-divider v-if="esAdmin || esSuperAdmin" class="my-1 border-opacity-25" />
+
+              <v-list-item
+                prepend-icon="mdi-logout"
+                title="Cerrar sesión"
+                color="error"
+                class="mx-1 text-error"
+                rounded="lg"
+                @click="confirmarCierreSesion"
+              />
+            </v-list>
+          </v-menu>
         </div>
       </template>
     </v-app-bar>
@@ -185,7 +229,7 @@ watch(
 
 const elementosMenu = [
   { nombre: 'dashboard', titulo: 'Inicio', icono: 'mdi-home-outline', ruta: '/' },
-  { nombre: 'historia', titulo: 'Historia Clínica', icono: 'mdi-file-document-outline', ruta: '/historia' },
+  // { nombre: 'historia', titulo: 'Historia Clínica', icono: 'mdi-file-document-outline', ruta: '/historia' },
   { nombre: 'citas', titulo: 'Citas Médicas', icono: 'mdi-calendar-blank-outline', ruta: '/citas' },
   { nombre: 'resultados', titulo: 'Ayudas Diagnósticas', icono: 'mdi-pulse', ruta: '/resultados' },
 ]

@@ -451,8 +451,6 @@ async function verificarCodigoOtp() {
 // Login tradicional (Admin)
 async function iniciarSesionAdmin() {
     const { valid } = await refFormularioAdmin.value.validate()
-    if (!valid) return
-
     try {
         await almacenAuth.iniciarSesion(
             formularioAdmin.correoElectronico,
@@ -464,6 +462,11 @@ async function iniciarSesionAdmin() {
         // El error se maneja en el store
     }
 }
+
+onMounted(() => {
+    almacenAuth.error = null
+    regresarPaso1()
+})
 </script>
 
 <style scoped>
