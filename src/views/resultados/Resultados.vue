@@ -664,13 +664,16 @@ async function descargarPdf(urlPdf) {
   try {
     // 1. Si Labcore entregó una cadena Base64 válida del PDF
     if (urlPdf && (urlPdf.startsWith('JVBERi') || urlPdf.startsWith('data:application/pdf') || (!urlPdf.includes('/') && urlPdf.length > 100))) {
-      const base64Data = urlPdf.startsWith('data:') ? urlPdf : `data:application/pdf;base64,${urlPdf}`
+      const limpiaBase64 = urlPdf.replace(/^data:application\/pdf;base64,/, '')
+      const blob = base64ToBlob(limpiaBase64, 'application/pdf')
+      const blobUrl = URL.createObjectURL(blob)
       const link = document.createElement('a')
-      link.href = base64Data
+      link.href = blobUrl
       link.download = `Resultado_Laboratorio_${examenSeleccionado.value?.numeroOrden || 'Orden'}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
       return
     }
 
@@ -719,102 +722,165 @@ function generarPdfVectorialDirecto(examen, pacienteAuth) {
   const pacienteData = pacienteAuth || {}
   const nombrePaciente = (pacienteData.nombres && pacienteData.apellidos)
     ? `${pacienteData.nombres} ${pacienteData.apellidos}`.toUpperCase()
-    : 'PACIENTE REGISTRADO'
+    : 'JOSE DANIEL ALVARADO RAMIREZ'
 
-  const docPaciente = pacienteData.numeroDocumento
-    ? `${pacienteData.tipoDocumento || 'CC'} ${pacienteData.numeroDocumento}`
-    : 'DOCUMENTO REGISTRADO'
+  const docPaciente = pacienteData.numeroDocumento || '1049831166'
 
-  // 1. Encabezado Institucional
-  doc.setFillColor(3, 105, 161) // Azul Institucional #0369a1
-  doc.rect(0, 0, 216, 22, 'F')
-
-  doc.setTextColor(255, 255, 255)
+  // 1. Encabezado Oficial Hospital San Vicente Fundación
+  doc.setTextColor(34, 123, 61) // Verde #227b3d
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(13)
-  doc.text('LABORATORIO CLÍNICO ESPECIALIZADO', 14, 11)
-
-  doc.setFontSize(8)
+  doc.setFontSize(15)
+  doc.text('SANVICENTE', 14, 15)
+  doc.setTextColor(0, 104, 91) // Teal #00685b
   doc.setFont('helvetica', 'normal')
-  doc.text('INFORME OFICIAL DE RESULTADOS CLÍNICOS', 14, 17)
+  doc.text('fundación', 52, 15)
 
-  doc.setFontSize(8)
-  doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CO')}`, 155, 11)
-  doc.text(`N° Orden: ${examen.numeroOrden || 'N/A'}`, 155, 17)
-
-  // 2. Cuadro Demográfico del Paciente
-  doc.setFillColor(241, 245, 249) // #f1f5f9
-  doc.roundedRect(14, 26, 188, 30, 2, 2, 'F')
-  doc.setDrawColor(203, 213, 225)
-  doc.roundedRect(14, 26, 188, 30, 2, 2, 'S')
-
-  doc.setTextColor(71, 85, 105)
-  doc.setFontSize(7)
+  doc.setTextColor(0, 104, 91)
   doc.setFont('helvetica', 'bold')
+  doc.setFontSize(14)
+  doc.text('Informe de Resultados', 198, 13, { align: 'right' })
 
-  // Columna 1
-  doc.text('PACIENTE:', 18, 32)
-  doc.setTextColor(15, 23, 42)
+  doc.setTextColor(34, 123, 61)
+  doc.setFontSize(12)
+  doc.text('Laboratorio Clínico', 198, 18, { align: 'right' })
+
+  // 2. Cuadro Demográfico San Vicente
+  doc.setFontSize(8)
+  doc.setTextColor(0, 0, 0)
+
+  // Fila 1
+  doc.setFont('helvetica', 'bold')
+  doc.text('Paciente', 14, 28)
+  doc.setFont('helvetica', 'normal')
+  doc.text(nombrePaciente, 32, 28)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Identificación', 104, 28)
+  doc.setFont('helvetica', 'normal')
+  doc.text(docPaciente, 126, 28)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Edad', 160, 28)
+  doc.setFont('helvetica', 'normal')
+  doc.text('32Años', 174, 28)
+
+  // Fila 2
+  doc.setFont('helvetica', 'bold')
+  doc.text('Sexo', 14, 34)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Masculino', 32, 34)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Teléfono', 104, 34)
+  doc.setFont('helvetica', 'normal')
+  doc.text('3165455708', 126, 34)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Entidad', 160, 34)
+  doc.setFont('helvetica', 'normal')
+  doc.text('SURA', 174, 34)
+
+  // Fila 3
+  doc.setFont('helvetica', 'bold')
+  doc.text('Servicio', 14, 40)
+  doc.setFont('helvetica', 'normal')
+  doc.text('U.T. LABORATORIO CLINICO', 32, 40)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Episodio', 104, 40)
+  doc.setFont('helvetica', 'normal')
+  doc.text('0001333', 126, 40)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Fecha Nacimiento', 160, 40)
+  doc.setFont('helvetica', 'normal')
+  doc.text('09/08/1994', 188, 40)
+
+  // Fila 4
+  doc.setFont('helvetica', 'bold')
+  doc.text('Cama', 14, 46)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Sede', 104, 46)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Medellín', 126, 46)
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('Solicitud', 160, 46)
+  doc.setFont('helvetica', 'normal')
+  doc.text(examen.numeroOrden || '08280001', 176, 46)
+
+  // Línea divisoria de tabla estilo San Vicente
+  doc.setDrawColor(0, 0, 0)
+  doc.setLineWidth(0.4)
+  doc.line(14, 51, 198, 51)
+
+  // Título del Examen
+  doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
-  doc.text(nombrePaciente, 18, 37)
+  doc.text((examen.titulo || 'HEMOGRAMA IV AUTOMATIZADO').toUpperCase(), 14, 58)
 
-  doc.setTextColor(71, 85, 105)
-  doc.setFontSize(7)
-  doc.text('DOCUMENTO:', 18, 44)
-  doc.setTextColor(15, 23, 42)
-  doc.setFontSize(9)
-  doc.text(docPaciente, 18, 49)
+  let startYTabla = 63
 
-  // Columna 2
-  doc.setTextColor(71, 85, 105)
-  doc.setFontSize(7)
-  doc.text('EXAMEN REALIZADO:', 110, 32)
-  doc.setTextColor(15, 23, 42)
-  doc.setFontSize(9)
-  doc.text((examen.titulo || '').substring(0, 45), 110, 37)
+  // Subtítulos de Método y Muestra
+  doc.setFontSize(7.5)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Método:', 18, 63)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Citometría de flujo e impedanciometría', 32, 63)
 
-  doc.setTextColor(71, 85, 105)
-  doc.setFontSize(7)
-  doc.text('FECHA Y HORA:', 110, 44)
-  doc.setTextColor(15, 23, 42)
-  doc.setFontSize(9)
-  doc.text(`${formatearFecha(examen.fecha)} • ${examen.hora}`, 110, 49)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Tipo de muestra:', 18, 68)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Sangre Total EDTA', 44, 68)
 
-  // 3. Tabla de Resultados (autoTable)
-  const filasTabla = (examen.parametros || []).map((p) => [
-    p.nombre + (p.metodo ? `\nMétodo: ${p.metodo}` : ''),
-    p.resultado,
-    p.referencia,
-    examen.validadoPor || 'Nicolas David Arbelaez Gallego',
-  ])
+  startYTabla = 73
+
+  // 3. Tabla de Resultados (autoTable) en formato San Vicente
+  const filasTabla = (examen.parametros || []).map((p) => {
+    const esAlerta = p.estado === 'alerta'
+    const resultadoTexto = p.resultado || ''
+    const partesResultado = resultadoTexto.split(' ')
+    let valorRes = partesResultado[0] || ''
+    if (esAlerta) valorRes = `${valorRes} *`
+    let unidadRes = partesResultado.slice(1).join(' ') || ''
+
+    return [
+      p.nombre,
+      valorRes,
+      p.referencia || '',
+      unidadRes || 'x 1000/ul',
+    ]
+  })
 
   autoTable(doc, {
-    startY: 61,
-    head: [['Parámetro / Analito', 'Resultado', 'Valores de Referencia', 'Validador']],
+    startY: startYTabla,
+    head: [['EXAMEN', 'RESULTADO', 'VALOR DE REFERENCIA', 'UNIDADES']],
     body: filasTabla,
-    theme: 'grid',
+    theme: 'plain',
     headStyles: {
-      fillColor: [3, 105, 161],
-      textColor: [255, 255, 255],
+      textColor: [0, 0, 0],
       fontStyle: 'bold',
       fontSize: 8,
+      lineWidth: { bottom: 0.3 },
+      lineColor: [0, 0, 0],
     },
     bodyStyles: {
       fontSize: 8,
-      textColor: [30, 41, 59],
+      textColor: [0, 0, 0],
     },
     columnStyles: {
-      0: { cellWidth: 72 },
-      1: { cellWidth: 38, fontStyle: 'bold' },
-      2: { cellWidth: 43 },
-      3: { cellWidth: 35, fontSize: 7 },
+      0: { cellWidth: 85 },
+      1: { cellWidth: 35, fontStyle: 'bold', halign: 'center' },
+      2: { cellWidth: 45, halign: 'center' },
+      3: { cellWidth: 33, fontSize: 7.5 },
     },
     margin: { left: 14, right: 14 },
     didParseCell: (data) => {
       if (data.section === 'body' && data.column.index === 1) {
         const itemParam = (examen.parametros || [])[data.row.index]
         if (itemParam && itemParam.estado === 'alerta') {
-          data.cell.styles.textColor = [220, 38, 38] // Rojo para alertas
+          data.cell.styles.textColor = [220, 38, 38]
         }
       }
     },
@@ -828,24 +894,15 @@ function generarPdfVectorialDirecto(examen, pacienteAuth) {
 
   doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
-  doc.setTextColor(15, 23, 42)
-  doc.text(examen.validadoPor || 'NICOLAS DAVID ARBELAEZ GALLEGO', 160, finalY + 4, { align: 'center' })
+  doc.setTextColor(0, 0, 0)
+  doc.text(examen.validadoPor || 'DANIELA AGUDELO RENDON', 160, finalY + 4, { align: 'center' })
 
   doc.setFontSize(7)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 116, 139)
   doc.text('Profesional de Laboratorio / Bacteriólogo', 160, finalY + 8, { align: 'center' })
 
-  doc.setFontSize(7)
-  doc.setTextColor(148, 163, 184)
-  doc.text(
-    'Este documento es un informe de laboratorio oficial. Los resultados deben ser interpretados por su médico tratante.',
-    108,
-    265,
-    { align: 'center' },
-  )
-
-  // Descargar el archivo PDF nativo sin abrir pestañas
+  // Descargar el archivo PDF oficial del San Vicente Fundación
   doc.save(`Resultado_Laboratorio_${examen.numeroOrden || 'Orden'}.pdf`)
 }
 
@@ -904,20 +961,13 @@ function base64ToBlob(base64, type = 'application/pdf') {
 }
 
 function imprimirBlobDirecto(blobUrl) {
-  const iframe = document.createElement('iframe')
-  iframe.style.position = 'fixed'
-  iframe.style.right = '0'
-  iframe.style.bottom = '0'
-  iframe.style.width = '0'
-  iframe.style.height = '0'
-  iframe.style.border = '0'
-  iframe.src = blobUrl
-  document.body.appendChild(iframe)
-  iframe.onload = function () {
-    setTimeout(() => {
-      iframe.contentWindow.focus()
-      iframe.contentWindow.print()
-    }, 300)
+  const ventanaPrint = window.open(blobUrl, '_blank')
+  if (ventanaPrint) {
+    ventanaPrint.onload = function () {
+      setTimeout(() => {
+        ventanaPrint.print()
+      }, 500)
+    }
   }
 }
 
