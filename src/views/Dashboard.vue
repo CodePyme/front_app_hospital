@@ -157,6 +157,14 @@ const primerNombre = computed(() => {
 
 const serviciosDisponibles = [
   {
+    titulo: 'Historia Clínica',
+    descripcion: 'Evoluciones y epicrisis médicas.',
+    icono: 'mdi-file-document-outline',
+    colorIcono: '#059669',
+    colorFondo: '#ecfdf5',
+    ruta: '/historia',
+  },
+  {
     titulo: 'Citas Médicas',
     descripcion: 'Programación y cancelación.',
     icono: 'mdi-calendar-blank-outline',
