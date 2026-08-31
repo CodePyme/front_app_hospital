@@ -45,7 +45,8 @@ const rutas = [
   {
     path: '/historia',
     name: 'historia',
-    redirect: '/',
+    component: () => import('../views/historia/HistoriaClinica.vue'),
+    meta: { requiereAutenticacion: true },
   },
   {
     path: '/medicamentos',
@@ -91,9 +92,17 @@ enrutador.beforeEach((hacia, desde, siguiente) => {
   const almacenAuth = useAlmacenAutenticacion()
   const requiereAuth = hacia.meta.requiereAuth !== false
   const CORREO_SUPER_ADMIN = 'admin@codepyme.com'
+  const DOCUMENTOS_ADMIN_PERMITIDOS = ['123456789', '1049831166']
+
+  const docPaciente = (almacenAuth.paciente?.numeroDocumento || '').trim()
+  const docUsuario = (almacenAuth.usuario?.numeroDocumento || '').trim()
+  const correo = almacenAuth.usuario?.correoElectronico || ''
+
   const esAdmin =
-    almacenAuth.usuario?.rol === 'administrador' ||
-    almacenAuth.usuario?.correoElectronico === CORREO_SUPER_ADMIN
+    DOCUMENTOS_ADMIN_PERMITIDOS.includes(docPaciente) ||
+    DOCUMENTOS_ADMIN_PERMITIDOS.includes(docUsuario) ||
+    correo === CORREO_SUPER_ADMIN ||
+    correo === 'cristian@codepyme.com'
 
   if (requiereAuth && !almacenAuth.estaAutenticado) {
     siguiente({ name: 'iniciar-sesion' })

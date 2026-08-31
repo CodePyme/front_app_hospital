@@ -1,13 +1,8 @@
 <template>
   <v-app>
     <!-- Barra de navegación lateral con ancho suficiente para no cortar texto -->
-    <v-navigation-drawer
-      v-model="cajoneAbierto"
-      :rail="rielesModo"
-      :width="280"
-      color="primary"
-      class="sidebar-saludplus"
-    >
+    <v-navigation-drawer v-model="cajoneAbierto" :rail="rielesModo" :width="280" color="primary"
+      class="sidebar-saludplus">
       <!-- Logo / Título -->
       <div class="pa-4 d-flex align-center gap-3">
         <template v-if="almacenConfiguracion.logoUrl">
@@ -29,34 +24,16 @@
 
       <!-- Menú de navegación principal con 3 servicios esenciales + Inicio -->
       <v-list class="px-3 py-2">
-        <v-list-item
-          v-for="elemento in elementosMenu"
-          :key="elemento.nombre"
-          :prepend-icon="elemento.icono"
-          :title="elemento.titulo"
-          :value="elemento.nombre"
-          :to="elemento.ruta"
-          rounded="xl"
-          color="white"
-          base-color="white"
-          class="mb-2 font-weight-medium item-menu-lateral"
-          @click="alSeleccionarMenu"
-        />
+        <v-list-item v-for="elemento in elementosMenu" :key="elemento.nombre" :prepend-icon="elemento.icono"
+          :title="elemento.titulo" :value="elemento.nombre" :to="elemento.ruta" rounded="xl" color="white"
+          base-color="white" class="mb-2 font-weight-medium item-menu-lateral" @click="alSeleccionarMenu" />
 
         <!-- Sección de Configuración (Solo Administrador) -->
         <template v-if="esAdmin">
           <v-divider class="my-2 border-opacity-25" />
-          <v-list-item
-            prepend-icon="mdi-palette-outline"
-            title="Configuración"
-            value="configuracion"
-            to="/configuracion"
-            rounded="xl"
-            color="white"
-            base-color="white"
-            class="mb-2 font-weight-medium item-menu-lateral"
-            @click="alSeleccionarMenu"
-          />
+          <v-list-item prepend-icon="mdi-palette-outline" title="Configuración" value="configuracion"
+            to="/configuracion" rounded="xl" color="white" base-color="white"
+            class="mb-2 font-weight-medium item-menu-lateral" @click="alSeleccionarMenu" />
         </template>
 
         <!-- Sección de Super Admin -->
@@ -65,17 +42,9 @@
           <v-list-subheader v-if="!rielesModo" class="text-caption text-white opacity-80">
             SUPER ADMIN
           </v-list-subheader>
-          <v-list-item
-            prepend-icon="mdi-domain"
-            title="Tenants"
-            value="tenants"
-            to="/tenants"
-            rounded="lg"
-            color="white"
-            base-color="white"
-            class="mb-2 font-weight-medium item-menu-lateral"
-            @click="alSeleccionarMenu"
-          >
+          <v-list-item prepend-icon="mdi-domain" title="Tenants" value="tenants" to="/tenants" rounded="lg"
+            color="white" base-color="white" class="mb-2 font-weight-medium item-menu-lateral"
+            @click="alSeleccionarMenu">
             <template v-slot:append v-if="!rielesModo">
               <v-icon icon="mdi-shield-crown" size="14" color="deep-purple" />
             </template>
@@ -104,7 +73,8 @@
     <!-- Barra superior -->
     <v-app-bar color="background" elevation="0" class="px-2 px-md-4">
       <template v-slot:prepend>
-        <v-app-bar-nav-icon aria-label="Abrir menú de navegación" color="primary" class="d-lg-none" @click="cajoneAbierto = !cajoneAbierto"></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon aria-label="Abrir menú de navegación" color="primary" class="d-lg-none"
+          @click="cajoneAbierto = !cajoneAbierto"></v-app-bar-nav-icon>
       </template>
 
       <template v-slot:append>
@@ -119,10 +89,8 @@
           <!-- Perfil usuario con menú desplegable -->
           <v-menu location="bottom end" transition="scale-transition">
             <template v-slot:activator="{ props }">
-              <div
-                v-bind="props"
-                class="d-flex align-center gap-2 cursor-pointer bg-white px-2 px-md-3 py-1 rounded-pill border"
-              >
+              <div v-bind="props"
+                class="d-flex align-center gap-2 cursor-pointer bg-white px-2 px-md-3 py-1 rounded-pill border">
                 <v-avatar color="green-lighten-5" size="32" class="d-md-none">
                   <v-icon color="primary" size="20">mdi-account-outline</v-icon>
                 </v-avatar>
@@ -154,35 +122,18 @@
               <v-divider class="my-1 border-opacity-25" />
 
               <template v-if="esAdmin">
-                <v-list-item
-                  prepend-icon="mdi-palette-outline"
-                  title="Configuración"
-                  to="/configuracion"
-                  rounded="lg"
-                  class="mx-1"
-                />
+                <v-list-item prepend-icon="mdi-palette-outline" title="Configuración" to="/configuracion" rounded="lg"
+                  class="mx-1" />
               </template>
 
               <template v-if="esSuperAdmin">
-                <v-list-item
-                  prepend-icon="mdi-domain"
-                  title="Tenants"
-                  to="/tenants"
-                  rounded="lg"
-                  class="mx-1"
-                />
+                <v-list-item prepend-icon="mdi-domain" title="Tenants" to="/tenants" rounded="lg" class="mx-1" />
               </template>
 
               <v-divider v-if="esAdmin || esSuperAdmin" class="my-1 border-opacity-25" />
 
-              <v-list-item
-                prepend-icon="mdi-logout"
-                title="Cerrar sesión"
-                color="error"
-                class="mx-1 text-error"
-                rounded="lg"
-                @click="confirmarCierreSesion"
-              />
+              <v-list-item prepend-icon="mdi-logout" title="Cerrar sesión" color="error" class="mx-1 text-error"
+                rounded="lg" @click="confirmarCierreSesion" />
             </v-list>
           </v-menu>
         </div>
@@ -229,18 +180,29 @@ watch(
 
 const elementosMenu = [
   { nombre: 'dashboard', titulo: 'Inicio', icono: 'mdi-home-outline', ruta: '/' },
-  // { nombre: 'historia', titulo: 'Historia Clínica', icono: 'mdi-file-document-outline', ruta: '/historia' },
+  { nombre: 'historia', titulo: 'Historia Clínica', icono: 'mdi-file-document-outline', ruta: '/historia' },
   { nombre: 'citas', titulo: 'Citas Médicas', icono: 'mdi-calendar-blank-outline', ruta: '/citas' },
   { nombre: 'resultados', titulo: 'Ayudas Diagnósticas', icono: 'mdi-pulse', ruta: '/resultados' },
 ]
 
 const CORREO_SUPER_ADMIN = 'admin@codepyme.com'
+const DOCUMENTOS_ADMIN_PERMITIDOS = ['123456789', '1049831166']
+
 const esSuperAdmin = computed(
   () => almacenAuth.usuario?.correoElectronico === CORREO_SUPER_ADMIN,
 )
-const esAdmin = computed(
-  () => almacenAuth.usuario?.rol === 'administrador' || almacenAuth.usuario?.correoElectronico === CORREO_SUPER_ADMIN,
-)
+const esAdmin = computed(() => {
+  const docPaciente = (almacenAuth.paciente?.numeroDocumento || '').trim()
+  const docUsuario = (almacenAuth.usuario?.numeroDocumento || '').trim()
+  const correo = almacenAuth.usuario?.correoElectronico || ''
+
+  return (
+    DOCUMENTOS_ADMIN_PERMITIDOS.includes(docPaciente) ||
+    DOCUMENTOS_ADMIN_PERMITIDOS.includes(docUsuario) ||
+    correo === CORREO_SUPER_ADMIN ||
+    correo === 'cristian@codepyme.com'
+  )
+})
 
 async function confirmarCierreSesion() {
   const confirmado = await confirmarEliminacion('tu sesión')
