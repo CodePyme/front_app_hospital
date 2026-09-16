@@ -311,6 +311,21 @@ import autoTable from 'jspdf-autotable'
 
 const almacenAuth = useAlmacenAutenticacion()
 
+/**
+ * Escapa caracteres HTML especiales para evitar inyección al construir la
+ * plantilla de impresión con document.write (los datos vienen del backend/Labcore
+ * y no deben tratarse como HTML de confianza).
+ */
+function escapeHtml(valor) {
+  if (valor === null || valor === undefined) return ''
+  return String(valor)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
 // Columnas para la tabla de parámetros
 const columnasParametros = [
   { title: 'Parámetro / Analito', key: 'nombre', sortable: false },
@@ -571,14 +586,14 @@ function obtenerHtmlPlantillaInforme(examen, pacienteAuth) {
   const filasParametros = (examen.parametros || []).map((p, idx) => `
     <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
       <td style="padding: 10px 14px; font-size: 13px; color: #1e293b; vertical-align: top;">
-        <strong>${p.nombre}</strong>
-        ${p.metodo ? `<br><span style="font-size: 11px; color: #64748b;">Método: ${p.metodo}</span>` : ''}
+        <strong>${escapeHtml(p.nombre)}</strong>
+        ${p.metodo ? `<br><span style="font-size: 11px; color: #64748b;">Método: ${escapeHtml(p.metodo)}</span>` : ''}
       </td>
       <td style="padding: 10px 14px; font-size: 13px; font-weight: bold; color: ${p.estado === 'alerta' ? '#dc2626' : '#0f172a'}; vertical-align: top;">
-        ${p.resultado} ${p.estado === 'alerta' ? '<span style="font-size: 10px; background-color: #fee2e2; color: #dc2626; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">ALERTA</span>' : ''}
+        ${escapeHtml(p.resultado)} ${p.estado === 'alerta' ? '<span style="font-size: 10px; background-color: #fee2e2; color: #dc2626; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">ALERTA</span>' : ''}
       </td>
-      <td style="padding: 10px 14px; font-size: 13px; color: #475569; vertical-align: top;">${p.referencia}</td>
-      <td style="padding: 10px 14px; font-size: 11px; color: #64748b; vertical-align: top;">${examen.validadoPor || 'Profesional de Laboratorio'}</td>
+      <td style="padding: 10px 14px; font-size: 13px; color: #475569; vertical-align: top;">${escapeHtml(p.referencia)}</td>
+      <td style="padding: 10px 14px; font-size: 11px; color: #64748b; vertical-align: top;">${escapeHtml(examen.validadoPor || 'Profesional de Laboratorio')}</td>
     </tr>
   `).join('')
 
@@ -590,35 +605,35 @@ function obtenerHtmlPlantillaInforme(examen, pacienteAuth) {
           <div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 3px;">Informe Oficial de Resultados Clínicos</div>
         </div>
         <div style="text-align: right; font-size: 12px; color: #475569;">
-          <div><strong>Fecha de Emisión:</strong> ${new Date().toLocaleDateString('es-CO')}</div>
-          <div><strong>Orden N°:</strong> ${examen.numeroOrden || 'N/A'}</div>
+          <div><strong>Fecha de Emisión:</strong> ${escapeHtml(new Date().toLocaleDateString('es-CO'))}</div>
+          <div><strong>Orden N°:</strong> ${escapeHtml(examen.numeroOrden || 'N/A')}</div>
         </div>
       </div>
 
       <div style="background-color: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 13px;">
         <div>
           <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 2px;">Paciente</div>
-          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${nombrePaciente}</div>
+          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${escapeHtml(nombrePaciente)}</div>
         </div>
         <div>
           <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 2px;">Documento</div>
-          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${docPaciente}</div>
+          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${escapeHtml(docPaciente)}</div>
         </div>
         <div>
           <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 2px;">Examen Realizado</div>
-          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${examen.titulo}</div>
+          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${escapeHtml(examen.titulo)}</div>
         </div>
         <div>
           <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 2px;">Fecha y Hora de Orden</div>
-          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${formatearFecha(examen.fecha)} • ${examen.hora}</div>
+          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${escapeHtml(formatearFecha(examen.fecha))} • ${escapeHtml(examen.hora)}</div>
         </div>
         <div>
           <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 2px;">Sede de Procesamiento</div>
-          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${examen.laboratorio || 'Laboratorio Clínico Central'}</div>
+          <div style="font-size: 14px; font-weight: 600; color: #0f172a;">${escapeHtml(examen.laboratorio || 'Laboratorio Clínico Central')}</div>
         </div>
         <div>
           <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 2px;">Interpretación Global</div>
-          <div style="font-size: 14px; font-weight: 600; color: ${examen.resultadoGlobal === 'Normal' ? '#059669' : '#d97706'};">${examen.resultadoGlobal}</div>
+          <div style="font-size: 14px; font-weight: 600; color: ${examen.resultadoGlobal === 'Normal' ? '#059669' : '#d97706'};">${escapeHtml(examen.resultadoGlobal)}</div>
         </div>
       </div>
 
@@ -643,7 +658,7 @@ function obtenerHtmlPlantillaInforme(examen, pacienteAuth) {
         </div>
         <div style="text-align: center; width: 250px;">
           <div style="border-top: 1.5px solid #334155; margin-bottom: 6px;"></div>
-          <div style="font-weight: 700; color: #0f172a;">${examen.validadoPor || 'NICOLAS DAVID ARBELAEZ GALLEGO'}</div>
+          <div style="font-weight: 700; color: #0f172a;">${escapeHtml(examen.validadoPor || 'NICOLAS DAVID ARBELAEZ GALLEGO')}</div>
           <div style="font-size: 11px; color: #64748b;">Profesional de Laboratorio / Bacteriólogo</div>
         </div>
       </div>

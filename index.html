@@ -7,9 +7,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description"
     content="Portal del Paciente Runasalud. Consulta tus citas médicas, resultados de laboratorio, historia clínica y más servicios de salud en línea." />
-  <!-- Content Security Policy: Previene XSS permitiendo scripts solo del propio dominio e inline styles por Vuetify -->
+  <!-- Content Security Policy: Previene XSS permitiendo scripts solo del propio dominio.
+       'unsafe-inline' en style-src se mantiene porque Vuetify inyecta estilos inline en tiempo de
+       ejecución; no habilita ejecución de scripts, así que el riesgo de XSS que mitiga esta cabecera
+       se mantiene acotado a inyección de estilos, no de JavaScript. -->
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000 https://apiportalpacientesf.codepyme.io;">
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3000 https://apiportalpacientesf.codepyme.io;">
   <title>Portal del Paciente</title>
 </head>
 
