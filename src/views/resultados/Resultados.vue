@@ -131,7 +131,10 @@
             </div>
 
             <div class="d-flex align-center gap-2 flex-shrink-0">
-              <v-chip :color="examen.estadoColor" variant="flat" size="small" class="font-weight-bold text-primary px-3">
+              <v-chip v-if="examen.esConfidencial" color="amber-lighten-4" variant="flat" size="small" class="font-weight-bold text-amber-900 px-3">
+                Presencial
+              </v-chip>
+              <v-chip v-else :color="examen.estadoColor" variant="flat" size="small" class="font-weight-bold text-primary px-3">
                 {{ examen.estado }}
               </v-chip>
               <v-icon color="grey-darken-1">mdi-chevron-right</v-icon>
@@ -168,8 +171,8 @@
 
         <div v-else-if="examenSeleccionado" class="pl-md-4">
           <!-- Cabecera del Detalle -->
-          <v-chip color="green-lighten-4" text-color="primary" class="font-weight-bold mb-2 text-caption px-3" size="small" variant="flat">
-            {{ examenSeleccionado.categoria }}
+          <v-chip :color="examenSeleccionado.esConfidencial ? 'amber-lighten-4' : 'green-lighten-4'" :class="[examenSeleccionado.esConfidencial ? 'text-amber-900' : 'text-primary', 'font-weight-bold mb-2 text-caption px-3']" size="small" variant="flat">
+            {{ examenSeleccionado.esConfidencial ? 'Diagnóstico Confidencial' : examenSeleccionado.categoria }}
           </v-chip>
           
           <div class="d-flex flex-column flex-md-row justify-space-between align-start mb-6 gap-4">
@@ -194,82 +197,149 @@
               </div>
             </div>
             
-            <div class="d-flex flex-column w-100 w-md-auto mt-2 mt-md-0 gap-2">
-              <v-btn
-                color="secondary"
-                rounded="pill"
-                elevation="0"
-                class="text-primary font-weight-bold text-none px-6 w-100 w-md-auto mb-2"
-                :loading="cargandoPdf"
-                @click="descargarPdf(examenSeleccionado.pdfUrl)"
-              >
-                <v-icon start>mdi-download</v-icon> Descargar PDF
-              </v-btn>
+            <!-- Zona de Descarga de PDF / Aviso Presencial Requerido -->
+            <div class="w-100 w-md-auto mt-2 mt-md-0">
+              <template v-if="examenSeleccionado.esConfidencial">
+                <div class="caja-aviso-presencial pa-4 rounded-xl d-flex align-center gap-3">
+                  <v-avatar color="amber-darken-1" size="40" class="flex-shrink-0">
+                    <v-icon color="white" size="24">mdi-lock-alert</v-icon>
+                  </v-avatar>
+                  <div>
+                    <div class="text-caption font-weight-black text-amber-900 text-uppercase" style="letter-spacing: 0.04em; line-height: 1.3;">
+                      EL RESULTADO ESTÁ LISTO PERO DEBE RECLAMARSE DE FORMA PRESENCIAL EN LA INSTITUCIÓN
+                    </div>
+                    <div class="text-caption text-amber-800 mt-1" style="font-size: 0.73rem !important;">
+                      Por bioseguridad y confidencialidad médica, la entrega física se realiza en sede institucional.
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <div class="d-flex flex-column w-100 w-md-auto gap-2">
+                  <v-btn
+                    color="secondary"
+                    rounded="pill"
+                    elevation="0"
+                    class="text-primary font-weight-bold text-none px-6 w-100 w-md-auto mb-2"
+                    :loading="cargandoPdf"
+                    @click="descargarPdf(examenSeleccionado.pdfUrl)"
+                  >
+                    <v-icon start>mdi-download</v-icon> Descargar PDF
+                  </v-btn>
 
-              <v-btn
-                variant="outlined"
-                color="primary"
-                rounded="pill"
-                class="text-none font-weight-bold px-6 w-100 w-md-auto bg-white"
-                @click="imprimirResultado"
-              >
-                <v-icon start>mdi-printer</v-icon> Imprimir Informe
-              </v-btn>
+                  <v-btn
+                    variant="outlined"
+                    color="primary"
+                    rounded="pill"
+                    class="text-none font-weight-bold px-6 w-100 w-md-auto bg-white"
+                    @click="imprimirResultado"
+                  >
+                    <v-icon start>mdi-printer</v-icon> Imprimir Informe
+                  </v-btn>
+                </div>
+              </template>
             </div>
           </div>
 
-          <!-- Tabla de Resultados -->
+          <!-- Tabla de Resultados o Panel de Confidencialidad -->
           <v-card elevation="0" class="border rounded-xl bg-white overflow-hidden mb-6">
-            <div class="pa-6 border-b">
-              <div class="d-flex justify-space-between align-center mb-2">
-                <h3 class="text-subtitle-1 font-weight-bold text-primary">Resumen de resultados</h3>
-                <v-chip :color="examenSeleccionado.resultadoGlobal === 'Normal' ? 'secondary' : 'warning'" variant="flat" size="small" class="font-weight-bold text-primary px-4">
-                  {{ examenSeleccionado.resultadoGlobal }}
-                </v-chip>
+            <template v-if="examenSeleccionado.esConfidencial">
+              <div class="pa-6 border-b bg-amber-lighten-5">
+                <div class="d-flex justify-space-between align-center mb-1">
+                  <h3 class="text-subtitle-1 font-weight-bold text-amber-900">Resultado Protegido / Entrega Presencial</h3>
+                  <v-chip color="amber-darken-3" variant="flat" size="small" class="font-weight-bold text-white px-3">
+                    Confidencial
+                  </v-chip>
+                </div>
+                <p class="text-caption text-amber-900 mb-0">
+                  Examen catalogado como diagnóstico de salud pública o reservado.
+                </p>
               </div>
-              <p class="text-body-2 text-grey-darken-1 mb-0">{{ examenSeleccionado.mensajeResumen }}</p>
-            </div>
-            
-            <v-data-table
-              v-if="examenSeleccionado.parametros && examenSeleccionado.parametros.length > 0"
-              :headers="columnasParametros"
-              :items="examenSeleccionado.parametros"
-              class="bg-transparent"
-              mobile-breakpoint="md"
-              hover
-            >
-              <template v-slot:bottom></template>
-              
-              <template v-slot:item.nombre="{ item }">
-                <span class="text-grey-darken-2 font-weight-medium">{{ item.nombre }}</span>
-                <div v-if="item.metodo" class="text-caption text-grey-darken-1">{{ item.metodo }}</div>
-              </template>
-              
-              <template v-slot:item.resultado="{ item }">
-                <span class="text-grey-darken-3 font-weight-bold">{{ item.resultado }}</span>
-              </template>
-              
-              <template v-slot:item.referencia="{ item }">
-                <span class="text-grey-darken-1">{{ item.referencia }}</span>
-              </template>
-              
-              <template v-slot:item.estado="{ item }">
-                <div :class="['status-dot mx-auto', `bg-${colorDot(item.estado)}`]"></div>
-              </template>
-            </v-data-table>
-            
-            <div v-else class="pa-6 text-center text-grey-darken-1">
-              No se hallaron parámetros o analitos registrados para esta orden.
-            </div>
 
-            <!-- Alerta Informativa -->
-            <div class="pa-4 bg-green-lighten-5 d-flex align-center gap-3">
-              <v-icon color="secondary" size="24">mdi-stethoscope</v-icon>
-              <div class="text-caption text-primary" style="line-height: 1.3">
-                <span class="font-weight-bold">Este resultado debe ser interpretado por tu médico tratante.</span><br>
-                Si tienes dudas, solicita una cita médica.
+              <!-- Panel Informativo Institucional -->
+              <div class="pa-8 text-center bg-white">
+                <v-avatar color="amber-lighten-4" size="64" class="mb-3 mx-auto">
+                  <v-icon color="amber-darken-3" size="36">mdi-hospital-building</v-icon>
+                </v-avatar>
+
+                <h4 class="text-h6 font-weight-bold text-slate-800 mb-2">
+                  Resultado Bajo Reserva de Salud Pública
+                </h4>
+
+                <div class="text-subtitle-2 font-weight-black text-amber-900 my-3 text-uppercase px-4" style="line-height: 1.4;">
+                  EL RESULTADO ESTÁ LISTO PERO DEBE RECLAMARSE DE FORMA PRESENCIAL EN LA INSTITUCIÓN
+                </div>
+
+                <p class="text-body-2 text-medium-emphasis mx-auto mb-5" style="max-width: 600px; line-height: 1.5;">
+                  De acuerdo con los protocolos de bioseguridad, confidencialidad médica y normatividad legal de salud pública para diagnósticos críticos (por ejemplo: VIH, tuberculosis y hepatitis), los valores detallados y el archivo PDF no se exhiben en el portal en línea. Te invitamos a reclamar tu resultado físico de forma presencial con tu documento de identidad en las instalaciones de la institución, donde recibirás la debida asesoría profesional.
+                </p>
+
+                <div class="d-flex justify-center gap-3 flex-wrap">
+                  <v-chip color="primary" variant="tonal" size="small" prepend-icon="mdi-map-marker-radius">
+                    Reclamo Presencial en Sede / Laboratorio
+                  </v-chip>
+                  <v-chip color="grey-darken-2" variant="tonal" size="small" prepend-icon="mdi-card-account-details-outline">
+                    Presentar Documento de Identidad Original
+                  </v-chip>
+                  <v-chip color="secondary" variant="flat" size="small" prepend-icon="mdi-doctor" class="text-primary font-weight-bold">
+                    Acompañamiento Profesional
+                  </v-chip>
+                </div>
               </div>
-            </div>
+            </template>
+
+            <template v-else>
+              <div class="pa-6 border-b">
+                <div class="d-flex justify-space-between align-center mb-2">
+                  <h3 class="text-subtitle-1 font-weight-bold text-primary">Resumen de resultados</h3>
+                  <v-chip :color="examenSeleccionado.resultadoGlobal === 'Normal' ? 'secondary' : 'warning'" variant="flat" size="small" class="font-weight-bold text-primary px-4">
+                    {{ examenSeleccionado.resultadoGlobal }}
+                  </v-chip>
+                </div>
+                <p class="text-body-2 text-grey-darken-1 mb-0">{{ examenSeleccionado.mensajeResumen }}</p>
+              </div>
+              
+              <v-data-table
+                v-if="examenSeleccionado.parametros && examenSeleccionado.parametros.length > 0"
+                :headers="columnasParametros"
+                :items="examenSeleccionado.parametros"
+                class="bg-transparent"
+                mobile-breakpoint="md"
+                hover
+              >
+                <template v-slot:bottom></template>
+                
+                <template v-slot:item.nombre="{ item }">
+                  <span class="text-grey-darken-2 font-weight-medium">{{ item.nombre }}</span>
+                  <div v-if="item.metodo" class="text-caption text-grey-darken-1">{{ item.metodo }}</div>
+                </template>
+                
+                <template v-slot:item.resultado="{ item }">
+                  <span class="text-grey-darken-3 font-weight-bold">{{ item.resultado }}</span>
+                </template>
+                
+                <template v-slot:item.referencia="{ item }">
+                  <span class="text-grey-darken-1">{{ item.referencia }}</span>
+                </template>
+                
+                <template v-slot:item.estado="{ item }">
+                  <div :class="['status-dot mx-auto', `bg-${colorDot(item.estado)}`]"></div>
+                </template>
+              </v-data-table>
+              
+              <div v-else class="pa-6 text-center text-grey-darken-1">
+                No se hallaron parámetros o analitos registrados para esta orden.
+              </div>
+
+              <!-- Alerta Informativa -->
+              <div class="pa-4 bg-green-lighten-5 d-flex align-center gap-3">
+                <v-icon color="secondary" size="24">mdi-stethoscope</v-icon>
+                <div class="text-caption text-primary" style="line-height: 1.3">
+                  <span class="font-weight-bold">Este resultado debe ser interpretado por tu médico tratante.</span><br>
+                  Si tienes dudas, solicita una cita médica.
+                </div>
+              </div>
+            </template>
           </v-card>
         </div>
 
@@ -342,6 +412,33 @@ const hayFiltrosActivos = computed(() => {
     Boolean(filtroTexto.value)
   )
 })
+
+// Patrones de diagnósticos críticos y de salud pública (VIH, tuberculosis, hepatitis, sífilis, etc.)
+const PATRONES_CONFIDENCIALES = [
+  /\b(vih|hiv)\b/i,
+  /inmunodeficiencia\s+humana/i,
+  /carga\s+viral.*(vih|hiv)/i,
+  /western\s+blot/i,
+  /tuberculosis/i,
+  /\btbc\b/i,
+  /\bbk\b/i,
+  /baciloscop/i,
+  /mycobacterium/i,
+  /hepatitis/i,
+  /\b(hbsag|anti-hcv|anti-vhc|vhb|vhc)\b/i,
+  /\b(sifilis|sífilis|treponema|vdrl|rpr)\b/i,
+]
+
+function esExamenConfidencial(examen) {
+  if (!examen) return false
+  if (examen.esConfidencial || examen.EsConfidencial) return true
+  const textos = [
+    examen.titulo,
+    examen.categoria,
+    ...(examen.parametros || []).map(p => p.nombre),
+  ].filter(Boolean).join(' ')
+  return PATRONES_CONFIDENCIALES.some((patron) => patron.test(textos))
+}
 
 function cambiarPestana(pestana) {
   pestanaActiva.value = pestana
@@ -442,6 +539,7 @@ async function cargarOrdenes() {
 
         const estadoRaw = ord.OrderStatus || 'COMPLETADA'
         const estadoTexto = estadoRaw === 'COMPLETADA' ? 'Completado' : estadoRaw === 'EN CURSO' ? 'En Curso' : estadoRaw
+        const esConf = Boolean(ord.EsConfidencial) || esExamenConfidencial({ titulo: nombresEstudios })
 
         return {
           id: ord.InternalNumber || idx + 1,
@@ -451,15 +549,18 @@ async function cargarOrdenes() {
           laboratorio: ord.LocationName || ord.Sede || 'Laboratorio Clínico Central',
           fecha: fechaFormateada,
           hora: horaFormateada,
-          icono: 'mdi-test-tube',
-          estado: estadoTexto,
-          estadoColor: estadoRaw === 'COMPLETADA' ? 'secondary' : 'warning',
-          categoria: 'Laboratorio',
+          icono: esConf ? 'mdi-lock-outline' : 'mdi-test-tube',
+          estado: esConf ? 'Presencial' : estadoTexto,
+          estadoColor: esConf ? 'amber-darken-2' : (estadoRaw === 'COMPLETADA' ? 'secondary' : 'warning'),
+          categoria: esConf ? 'Diagnóstico Confidencial' : 'Laboratorio',
+          esConfidencial: esConf,
           medico: ord.DoctorName || ord.Doctor || null,
           validadoPor: null,
-          resultadoGlobal: 'Normal',
-          mensajeResumen: 'Tus resultados se encuentran disponibles para consulta.',
-          pdfUrl: null,
+          resultadoGlobal: esConf ? 'Confidencial' : 'Normal',
+          mensajeResumen: esConf
+            ? 'EL RESULTADO ESTÁ LISTO PERO DEBE RECLAMARSE DE FORMA PRESENCIAL EN LA INSTITUCIÓN'
+            : 'Tus resultados se encuentran disponibles para consulta.',
+          pdfUrl: esConf ? null : ord.ResultPdf,
           parametros: [],
         }
       })
@@ -486,10 +587,30 @@ async function seleccionarExamen(examen) {
   examenSeleccionado.value = examen
   if (!examen || !examen.internalNumber) return
 
+  // Si ya se identificó como confidencial, mantener la restricción estricta
+  if (examen.esConfidencial || esExamenConfidencial(examen)) {
+    examen.esConfidencial = true
+    examen.pdfUrl = null
+    examen.parametros = []
+    examen.resultadoGlobal = 'Confidencial'
+    examen.mensajeResumen = 'EL RESULTADO ESTÁ LISTO PERO DEBE RECLAMARSE DE FORMA PRESENCIAL EN LA INSTITUCIÓN'
+    return
+  }
+
   cargandoDetalle.value = true
   try {
     const respuestaDetalle = await servicioResultados.obtenerDetalleOrden(examen.internalNumber)
     const detalle = respuestaDetalle.datos || {}
+
+    // Verificación de confidencialidad en el detalle devuelto
+    if (detalle.EsConfidencial || esExamenConfidencial({ titulo: examen.titulo })) {
+      examen.esConfidencial = true
+      examen.pdfUrl = null
+      examen.parametros = []
+      examen.resultadoGlobal = 'Confidencial'
+      examen.mensajeResumen = 'EL RESULTADO ESTÁ LISTO PERO DEBE RECLAMARSE DE FORMA PRESENCIAL EN LA INSTITUCIÓN'
+      return
+    }
 
     if (detalle.ResultPdf) {
       examen.pdfUrl = detalle.ResultPdf
@@ -500,9 +621,26 @@ async function seleccionarExamen(examen) {
     let hayAlerta = false
     let validadorNombre = null
 
+    // Verificar si algún estudio o analito individual es confidencial
+    for (const est of estudios) {
+      if (esExamenConfidencial({ titulo: est.StudyName })) {
+        examen.esConfidencial = true
+        examen.pdfUrl = null
+        examen.parametros = []
+        examen.resultadoGlobal = 'Confidencial'
+        examen.mensajeResumen = 'EL RESULTADO ESTÁ LISTO PERO DEBE RECLAMARSE DE FORMA PRESENCIAL EN LA INSTITUCIÓN'
+        return
+      }
+    }
+
     estudios.forEach((estudio) => {
       const analitos = estudio.Analytes || []
       analitos.forEach((ana) => {
+        if (esExamenConfidencial({ titulo: ana.AnalyteName })) {
+          examen.esConfidencial = true
+          return
+        }
+
         if (ana.ValidationUserName && !validadorNombre) {
           validadorNombre = ana.ValidationUserName
         }
@@ -534,6 +672,14 @@ async function seleccionarExamen(examen) {
         })
       })
     })
+
+    if (examen.esConfidencial) {
+      examen.pdfUrl = null
+      examen.parametros = []
+      examen.resultadoGlobal = 'Confidencial'
+      examen.mensajeResumen = 'EL RESULTADO ESTÁ LISTO PERO DEBE RECLAMARSE DE FORMA PRESENCIAL EN LA INSTITUCIÓN'
+      return
+    }
 
     if (validadorNombre) {
       examen.validadoPor = validadorNombre
@@ -660,6 +806,9 @@ function obtenerHtmlPlantillaInforme(examen, pacienteAuth) {
  */
 async function descargarPdf(urlPdf) {
   if (!examenSeleccionado.value) return
+  if (examenSeleccionado.value.esConfidencial || esExamenConfidencial(examenSeleccionado.value)) {
+    return
+  }
   cargandoPdf.value = true
   try {
     // 1. Si Labcore entregó una cadena Base64 válida del PDF
@@ -711,7 +860,7 @@ async function descargarPdf(urlPdf) {
  * Genera un PDF vectorial nativo con jsPDF y desencadena la descarga inmediata del archivo
  */
 function generarPdfVectorialDirecto(examen, pacienteAuth) {
-  if (!examen) return
+  if (!examen || examen.esConfidencial || esExamenConfidencial(examen)) return
 
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -911,6 +1060,9 @@ function generarPdfVectorialDirecto(examen, pacienteAuth) {
  */
 async function imprimirResultado() {
   if (!examenSeleccionado.value) return
+  if (examenSeleccionado.value.esConfidencial || esExamenConfidencial(examenSeleccionado.value)) {
+    return
+  }
   cargandoPdf.value = true
   try {
     const urlPdf = examenSeleccionado.value.pdfUrl
@@ -1035,6 +1187,12 @@ onMounted(() => {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+}
+
+.caja-aviso-presencial {
+  background-color: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.08);
 }
 
 /* Ajustes de select y text-field transparentes */

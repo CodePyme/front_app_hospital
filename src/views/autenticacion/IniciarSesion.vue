@@ -45,8 +45,38 @@
                                 <div class="etiqueta-campo">FECHA DE NACIMIENTO *</div>
                                 <v-text-field v-model="formularioPaciente.fechaNacimiento" type="date"
                                     variant="outlined" density="comfortable" append-inner-icon="mdi-calendar"
-                                    class="mb-5" :rules="[v => !!v || 'La fecha de nacimiento es requerida']"
+                                    class="mb-3" :rules="[v => !!v || 'La fecha de nacimiento es requerida']"
                                     :disabled="almacenAuth.cargando" hide-details="auto" />
+
+                                <!-- Autorización de Tratamiento de Datos Personales -->
+                                <div class="contenedor-tratamiento-datos pa-3 rounded-lg mb-4">
+                                    <v-checkbox
+                                        v-model="formularioPaciente.aceptaTratamientoDatos"
+                                        color="primary"
+                                        density="compact"
+                                        hide-details="auto"
+                                        :rules="[v => !!v || 'Debes autorizar el tratamiento de datos personales para continuar']"
+                                        :disabled="almacenAuth.cargando"
+                                        class="checkbox-politica"
+                                    >
+                                        <template #label>
+                                            <span class="text-caption text-slate-700" style="line-height: 1.35; user-select: text;">
+                                                Autorizo el tratamiento de mis datos personales de acuerdo con la 
+                                                <a 
+                                                    href="https://hospitalmedellin.sanvicentefundacion.com/politica-de-proteccion-de-datos-personales" 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    class="text-primary font-weight-bold text-decoration-underline"
+                                                    @click.stop
+                                                >
+                                                    Política de Protección de Datos Personales
+                                                    <v-icon size="11" class="ml-0.5">mdi-open-in-new</v-icon>
+                                                </a>.
+                                                Esta validación en línea reemplaza los consentimientos físicos previos.
+                                            </span>
+                                        </template>
+                                    </v-checkbox>
+                                </div>
 
                                 <!-- Alerta de Error -->
                                 <v-alert v-if="almacenAuth.error" type="error" variant="tonal" density="compact"
@@ -58,7 +88,7 @@
                                 <v-btn type="submit" color="primary" size="large" block rounded="pill"
                                     class="btn-accion font-weight-bold text-capitalize mt-2"
                                     :loading="almacenAuth.cargando"
-                                    :disabled="!formPaso1Valido || almacenAuth.cargando">
+                                    :disabled="!formPaso1Valido || !formularioPaciente.aceptaTratamientoDatos || almacenAuth.cargando">
                                     Continuar
                                     <v-icon end size="18">mdi-arrow-right</v-icon>
                                 </v-btn>
@@ -89,26 +119,36 @@
                             <div class="text-center mb-3">
                                 <h2 class="text-h5 font-weight-black text-slate-800 mb-2">Clave Dinámica</h2>
                                 <p class="text-caption text-medium-emphasis px-2">
-                                    Ingresa la clave dinámica enviada a tu correo electrónico
-                                    <strong v-if="correoDestino" class="text-primary d-block mt-1">{{ correoDestino
-                                        }}</strong>
-                                    <span v-else>y número de celular registrado.</span>
+                                    Ingresa la clave dinámica enviada a:
+                                    <span v-if="correoDestino" class="text-primary font-weight-bold d-block mt-1">
+                                        Correo: {{ correoDestino }}
+                                    </span>
+                                    <span v-if="telefonoDestino" class="text-primary font-weight-bold d-block mt-0.5">
+                                        Número: {{ telefonoDestino }}
+                                    </span>
+                                    <span v-if="!correoDestino && !telefonoDestino">tu correo electrónico y celular registrado.</span>
                                 </p>
                             </div>
 
-                            <!-- Alerta de 5 segundos con el correo de destino -->
+                            <!-- Alerta de 5 segundos con los datos de contacto enmascarados -->
                             <v-alert
                                 v-if="mostrarAvisoCorreo"
                                 type="success"
                                 variant="tonal"
                                 density="comfortable"
-                                class="mb-4 text-caption font-weight-bold"
+                                class="mb-4 text-caption font-weight-medium"
                                 rounded="lg"
                                 closable
                                 @click:close="mostrarAvisoCorreo = false"
                             >
-                                <v-icon start size="18">mdi-email-check-outline</v-icon>
-                                Clave enviada a: <strong>{{ correoDestino }}</strong>
+                                <div class="d-flex align-center">
+                                    <v-icon start size="20">mdi-shield-check-outline</v-icon>
+                                    <div>
+                                        <div class="font-weight-bold">Clave enviada exitosamente a:</div>
+                                        <div v-if="correoDestino">Correo: <strong>{{ correoDestino }}</strong></div>
+                                        <div v-if="telefonoDestino">Número: <strong>{{ telefonoDestino }}</strong></div>
+                                    </div>
+                                </div>
                             </v-alert>
 
                             <!-- Badge Clave Temporal -->
@@ -253,6 +293,7 @@ const anioActual = new Date().getFullYear()
 const modoIngreso = ref('paciente') // 'paciente' | 'admin'
 const pasoActual = ref(1) // 1 = Formulario | 2 = OTP 4 dígitos
 const correoDestino = ref('')
+const telefonoDestino = ref('')
 const mostrarAvisoCorreo = ref(false)
 let temporizadorAviso = null
 const segundosRestantes = ref(0)
@@ -269,6 +310,7 @@ const formularioPaciente = reactive({
     tipoDocumento: 'CC',
     numeroDocumento: '',
     fechaNacimiento: '',
+    aceptaTratamientoDatos: false,
 })
 
 const formularioAdmin = reactive({
@@ -328,6 +370,8 @@ function regresarPaso1() {
     digitosOtp[1] = ''
     digitosOtp[2] = ''
     digitosOtp[3] = ''
+    correoDestino.value = ''
+    telefonoDestino.value = ''
 }
 
 // Paso 1: Solicitar OTP
@@ -338,16 +382,25 @@ async function solicitarCodigoOtp() {
         if (!valid) return
     }
 
+    if (!formularioPaciente.aceptaTratamientoDatos) {
+        almacenAuth.error = 'Debes autorizar el tratamiento de datos personales para continuar.'
+        return
+    }
+
     try {
         const respuesta = await almacenAuth.solicitarOtp({
             tipoDocumento: formularioPaciente.tipoDocumento,
             numeroDocumento: formularioPaciente.numeroDocumento.trim(),
             fechaNacimiento: formularioPaciente.fechaNacimiento,
+            aceptaTratamientoDatos: formularioPaciente.aceptaTratamientoDatos,
         })
 
         correoDestino.value =
-            respuesta.datos?.correoDestino ||
             respuesta.datos?.correoEnmascarado ||
+            respuesta.datos?.correoDestino ||
+            ''
+        telefonoDestino.value =
+            respuesta.datos?.telefonoEnmascarado ||
             ''
 
         // Mostrar aviso del correo por exactamente 5 segundos
@@ -572,5 +625,18 @@ onMounted(() => {
         height: 54px;
         font-size: 1.5rem;
     }
+}
+
+.contenedor-tratamiento-datos {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.checkbox-politica :deep(.v-selection-control) {
+    align-items: flex-start;
+}
+
+.checkbox-politica :deep(.v-selection-control__input) {
+    margin-top: -2px;
 }
 </style>
