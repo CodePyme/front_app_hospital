@@ -27,6 +27,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', 'Roboto', sans-serif;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 ::-webkit-scrollbar {

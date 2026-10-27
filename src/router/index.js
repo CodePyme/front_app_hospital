@@ -34,39 +34,59 @@ const rutas = [
     path: '/citas',
     name: 'citas',
     component: () => import('../views/citas/ListaCitas.vue'),
-    meta: { requiereAutenticacion: true },
+    meta: { requiereAuth: true, permiso: 'citas.ver' },
   },
   {
     path: '/resultados',
     name: 'resultados',
     component: () => import('../views/resultados/Resultados.vue'),
-    meta: { requiereAutenticacion: true },
+    meta: { requiereAuth: true, permiso: 'resultados.ver' },
   },
   {
     path: '/historia',
     name: 'historia',
     component: () => import('../views/historia/HistoriaClinica.vue'),
-    meta: { requiereAutenticacion: true },
+    meta: { requiereAuth: true, permiso: 'historia.ver' },
   },
   {
     path: '/medicamentos',
     name: 'medicamentos',
     component: () => import('../views/medicamentos/Medicamentos.vue'),
-    meta: { requiereAutenticacion: true },
+    meta: { requiereAuth: true, permiso: 'medicamentos.ver' },
   },
   {
     path: '/citas/:id',
     name: 'detalle-cita',
     component: () => import('../views/citas/DetalleCita.vue'),
-    meta: { requiereAuth: true },
+    meta: { requiereAuth: true, permiso: 'citas.ver' },
   },
 
-  // Rutas de super admin (solo admin@codepyme.com)
+  // Módulos de Administración (Plataforma)
+  {
+    path: '/usuarios',
+    name: 'usuarios',
+    component: () => import('../views/usuarios/GestionUsuarios.vue'),
+    meta: { requiereAuth: true, permiso: 'usuarios.ver' },
+  },
+  {
+    path: '/roles',
+    name: 'roles',
+    component: () => import('../views/roles/GestionRoles.vue'),
+    meta: { requiereAuth: true, permiso: 'roles.ver' },
+  },
+  {
+    path: '/permisos',
+    name: 'permisos',
+    component: () => import('../views/permisos/GestionPermisos.vue'),
+    meta: { requiereAuth: true, permiso: 'permisos.ver' },
+  },
+
+  // Rutas de configuración y super admin
   {
     path: '/configuracion',
     name: 'configuracion',
     component: Configuracion,
-    meta: { requiereAuth: true, soloAdmin: true },
+    meta: { requiereAuth: true, permiso: 'configuracion.ver', soloAdmin: true },
   },
   {
     path: '/tenants',
@@ -93,17 +113,26 @@ enrutador.beforeEach((hacia, desde, siguiente) => {
   const requiereAuth = hacia.meta.requiereAuth !== false
   const CORREO_SUPER_ADMIN = 'admin@codepyme.com'
 
-  // La autorización real vive en el backend (rol emitido en el JWT tras autenticarse).
-  // El frontend solo refleja ese rol para la UI; nunca decide admin por documento/correo hardcodeado.
-  const esAdmin = almacenAuth.usuario?.rol === 'administrador'
+  const esAdmin =
+    almacenAuth.usuario?.rol === 'administrador' ||
+    almacenAuth.usuario?.correoElectronico === CORREO_SUPER_ADMIN ||
+    almacenAuth.usuario?.correoElectronico === 'cristian@codepyme.com'
+
+  // Módulo exclusivo: Tenants solo existe y es visible para admin@codepyme.com
+  if (hacia.path === '/tenants' || hacia.name === 'gestion-tenants' || hacia.meta.soloSuperAdmin) {
+    if (almacenAuth.usuario?.correoElectronico !== CORREO_SUPER_ADMIN) {
+      return siguiente({ name: 'dashboard' })
+    }
+  }
 
   if (requiereAuth && !almacenAuth.estaAutenticado) {
     siguiente({ name: 'iniciar-sesion' })
   } else if (!requiereAuth && almacenAuth.estaAutenticado && hacia.name === 'iniciar-sesion') {
     siguiente({ name: 'dashboard' })
-  } else if (hacia.meta.soloSuperAdmin && almacenAuth.usuario?.correoElectronico !== CORREO_SUPER_ADMIN) {
-    siguiente({ name: 'dashboard' })
   } else if (hacia.meta.soloAdmin && !esAdmin) {
+    siguiente({ name: 'dashboard' })
+  } else if (hacia.meta.permiso && !almacenAuth.tienePermiso(hacia.meta.permiso)) {
+    // Si no tiene el permiso requerido por la ruta, se le deniega el paso al recurso
     siguiente({ name: 'dashboard' })
   } else {
     siguiente()

@@ -1,10 +1,10 @@
 <template>
   <v-app>
     <!-- Barra de navegación lateral con ancho suficiente para no cortar texto -->
-    <v-navigation-drawer v-model="cajoneAbierto" :rail="rielesModo" :width="280" color="primary"
+    <v-navigation-drawer v-model="cajoneAbierto" :rail="rielesModo" :temporary="esMovil" :width="280" color="primary"
       class="sidebar-saludplus">
       <!-- Logo / Título -->
-      <div class="pa-4 d-flex align-center gap-3">
+      <div class="pa-4 d-flex align-center gap-3 cursor-pointer" @click="irAInicio">
         <template v-if="almacenConfiguracion.logoUrl">
           <v-img :src="almacenConfiguracion.logoUrl" max-height="42" max-width="42" contain />
         </template>
@@ -22,17 +22,37 @@
 
       <v-divider class="border-opacity-25" />
 
-      <!-- Menú de navegación principal con 3 servicios esenciales + Inicio -->
+      <!-- Menú de navegación principal con servicios clínicos + Inicio -->
       <v-list class="px-3 py-2">
-        <v-list-item v-for="elemento in elementosMenu" :key="elemento.nombre" :prepend-icon="elemento.icono"
+        <v-list-item v-for="elemento in elementosMenuVisibles" :key="elemento.nombre" :prepend-icon="elemento.icono"
           :title="elemento.titulo" :value="elemento.nombre" :to="elemento.ruta" rounded="xl" color="white"
           base-color="white" class="mb-2 font-weight-medium item-menu-lateral" @click="alSeleccionarMenu" />
 
-        <!-- Sección de Configuración (Solo Administrador) -->
-        <template v-if="esAdmin">
+        <!-- Sección de Administración de Plataforma -->
+        <template v-if="tieneAccesoAdministracion">
           <v-divider class="my-2 border-opacity-25" />
-          <v-list-item prepend-icon="mdi-palette-outline" title="Configuración" value="configuracion"
-            to="/configuracion" rounded="xl" color="white" base-color="white"
+          <v-list-subheader v-if="!rielesModo" class="text-caption text-white opacity-80 font-weight-bold">
+            ADMINISTRACIÓN
+          </v-list-subheader>
+
+          <!-- Gestión de Usuarios de Plataforma -->
+          <v-list-item v-if="puedeVerUsuarios" prepend-icon="mdi-account-cog-outline" title="Usuarios"
+            value="usuarios" to="/usuarios" rounded="xl" color="white" base-color="white"
+            class="mb-2 font-weight-medium item-menu-lateral" @click="alSeleccionarMenu" />
+
+          <!-- Gestión de Roles -->
+          <v-list-item v-if="puedeVerRoles" prepend-icon="mdi-shield-account-outline" title="Roles"
+            value="roles" to="/roles" rounded="xl" color="white" base-color="white"
+            class="mb-2 font-weight-medium item-menu-lateral" @click="alSeleccionarMenu" />
+
+          <!-- Catálogo de Permisos -->
+          <v-list-item v-if="puedeVerPermisos" prepend-icon="mdi-key-outline" title="Permisos"
+            value="permisos" to="/permisos" rounded="xl" color="white" base-color="white"
+            class="mb-2 font-weight-medium item-menu-lateral" @click="alSeleccionarMenu" />
+
+          <!-- Configuración de Entidad / Tenant -->
+          <v-list-item v-if="puedeVerConfiguracion" prepend-icon="mdi-palette-outline" title="Configuración"
+            value="configuracion" to="/configuracion" rounded="xl" color="white" base-color="white"
             class="mb-2 font-weight-medium item-menu-lateral" @click="alSeleccionarMenu" />
         </template>
 
@@ -46,7 +66,7 @@
             color="white" base-color="white" class="mb-2 font-weight-medium item-menu-lateral"
             @click="alSeleccionarMenu">
             <template v-slot:append v-if="!rielesModo">
-              <v-icon icon="mdi-shield-crown" size="14" color="deep-purple" />
+              <v-icon icon="mdi-shield-crown" size="14" color="secondary" />
             </template>
           </v-list-item>
         </template>
@@ -121,7 +141,22 @@
 
               <v-divider class="my-1 border-opacity-25" />
 
-              <template v-if="esAdmin">
+              <template v-if="puedeVerUsuarios">
+                <v-list-item prepend-icon="mdi-account-cog-outline" title="Usuarios" to="/usuarios" rounded="lg"
+                  class="mx-1" />
+              </template>
+
+              <template v-if="puedeVerRoles">
+                <v-list-item prepend-icon="mdi-shield-account-outline" title="Roles" to="/roles" rounded="lg"
+                  class="mx-1" />
+              </template>
+
+              <template v-if="puedeVerPermisos">
+                <v-list-item prepend-icon="mdi-key-outline" title="Permisos" to="/permisos" rounded="lg"
+                  class="mx-1" />
+              </template>
+
+              <template v-if="puedeVerConfiguracion">
                 <v-list-item prepend-icon="mdi-palette-outline" title="Configuración" to="/configuracion" rounded="lg"
                   class="mx-1" />
               </template>
@@ -130,7 +165,7 @@
                 <v-list-item prepend-icon="mdi-domain" title="Tenants" to="/tenants" rounded="lg" class="mx-1" />
               </template>
 
-              <v-divider v-if="esAdmin || esSuperAdmin" class="my-1 border-opacity-25" />
+              <v-divider v-if="tieneAccesoAdministracion || esSuperAdmin" class="my-1 border-opacity-25" />
 
               <v-list-item prepend-icon="mdi-logout" title="Cerrar sesión" color="error" class="mx-1 text-error"
                 rounded="lg" @click="confirmarCierreSesion" />
@@ -142,7 +177,7 @@
 
     <!-- Contenido principal -->
     <v-main>
-      <v-container fluid class="pa-6">
+      <v-container fluid class="pa-3 pa-md-6">
         <slot />
       </v-container>
     </v-main>
@@ -150,14 +185,15 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { useAlmacenAutenticacion } from '../stores/autenticacion.store'
 import { useAlmacenConfiguracion } from '../stores/configuracion.store'
 import { usarAlertas } from '../composables/usarAlertas'
 
-const { mdAndDown } = useDisplay()
+const { mdAndDown, mobile } = useDisplay()
+const esMovil = computed(() => mobile.value || mdAndDown.value)
 
 const almacenAuth = useAlmacenAutenticacion()
 const almacenConfiguracion = useAlmacenConfiguracion()
@@ -165,24 +201,41 @@ const enrutador = useRouter()
 const rutaActual = useRoute()
 const { confirmarEliminacion } = usarAlertas()
 
-const cajoneAbierto = ref(true)
+// En dispositivos móviles se inicia cerrado; en pantallas de escritorio abierto
+const cajoneAbierto = ref(!esMovil.value)
 const rielesModo = ref(false)
+
+// Asegurar que en móvil inicie cerrado
+onMounted(() => {
+  if (esMovil.value) {
+    cajoneAbierto.value = false
+  }
+})
+
+// Sincronizar estado cuando cambia el tamaño de pantalla
+watch(esMovil, (movil) => {
+  if (movil) {
+    cajoneAbierto.value = false
+  } else {
+    cajoneAbierto.value = true
+  }
+})
 
 // Cerrar el menú automáticamente al cambiar de ruta si estamos en móvil/tablet
 watch(
-  () => rutaActual.path,
+  () => rutaActual.fullPath,
   () => {
-    if (mdAndDown.value) {
+    if (esMovil.value) {
       cajoneAbierto.value = false
     }
   }
 )
 
 const elementosMenu = [
-  { nombre: 'dashboard', titulo: 'Inicio', icono: 'mdi-home-outline', ruta: '/' },
-  { nombre: 'historia', titulo: 'Historia Clínica', icono: 'mdi-file-document-outline', ruta: '/historia' },
-  { nombre: 'citas', titulo: 'Citas Médicas', icono: 'mdi-calendar-blank-outline', ruta: '/citas' },
-  { nombre: 'resultados', titulo: 'Ayudas Diagnósticas', icono: 'mdi-pulse', ruta: '/resultados' },
+  { nombre: 'dashboard', titulo: 'Inicio', icono: 'mdi-home-outline', ruta: '/', permiso: 'dashboard.ver' },
+  { nombre: 'historia', titulo: 'Historia Clínica', icono: 'mdi-file-document-outline', ruta: '/historia', permiso: 'historia.ver' },
+  { nombre: 'citas', titulo: 'Citas Médicas', icono: 'mdi-calendar-blank-outline', ruta: '/citas', permiso: 'citas.ver' },
+  { nombre: 'resultados', titulo: 'Ayudas Diagnósticas', icono: 'mdi-pulse', ruta: '/resultados', permiso: 'resultados.ver' },
 ]
 
 const CORREO_SUPER_ADMIN = 'admin@codepyme.com'
@@ -197,12 +250,44 @@ const esAdmin = computed(() => {
   const correo = almacenAuth.usuario?.correoElectronico || ''
 
   return (
+    almacenAuth.usuario?.rol === 'administrador' ||
     DOCUMENTOS_ADMIN_PERMITIDOS.includes(docPaciente) ||
     DOCUMENTOS_ADMIN_PERMITIDOS.includes(docUsuario) ||
     correo === CORREO_SUPER_ADMIN ||
     correo === 'cristian@codepyme.com'
   )
 })
+
+// Visibilidad de elementos clínicos y de autoconsulta
+const elementosMenuVisibles = computed(() => {
+  return elementosMenu.filter((item) => {
+    if (!item.permiso) return true
+    // Si es un paciente autenticado, se le permite el acceso base a su portal
+    if (almacenAuth.paciente && almacenAuth.rolUsuario === 'paciente') return true
+    return almacenAuth.tienePermiso(item.permiso)
+  })
+})
+
+// Permisos para módulos administrativos
+const puedeVerUsuarios = computed(
+  () => esAdmin.value || almacenAuth.tienePermiso('usuarios.ver'),
+)
+const puedeVerRoles = computed(
+  () => esAdmin.value || almacenAuth.tienePermiso('roles.ver'),
+)
+const puedeVerPermisos = computed(
+  () => esAdmin.value || almacenAuth.tienePermiso('permisos.ver'),
+)
+const puedeVerConfiguracion = computed(
+  () => esAdmin.value || almacenAuth.tienePermiso('configuracion.ver'),
+)
+const tieneAccesoAdministracion = computed(
+  () =>
+    puedeVerUsuarios.value ||
+    puedeVerRoles.value ||
+    puedeVerPermisos.value ||
+    puedeVerConfiguracion.value,
+)
 
 async function confirmarCierreSesion() {
   const confirmado = await confirmarEliminacion('tu sesión')
@@ -213,9 +298,14 @@ async function confirmarCierreSesion() {
 }
 
 function alSeleccionarMenu() {
-  if (mdAndDown.value) {
+  if (esMovil.value) {
     cajoneAbierto.value = false
   }
+}
+
+function irAInicio() {
+  alSeleccionarMenu()
+  enrutador.push('/')
 }
 </script>
 
