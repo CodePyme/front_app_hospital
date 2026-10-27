@@ -507,7 +507,6 @@
             rounded="pill"
             class="text-none font-weight-bold px-5"
             :loading="guardando"
-            :disabled="!formularioValido"
             @click="guardarRol"
           >
             {{ esEdicion ? 'Actualizar Rol' : 'Crear Rol' }}
@@ -705,7 +704,12 @@ function cerrarModal() {
 }
 
 async function guardarRol() {
-  if (!formularioValido.value) return
+  if (formularioRef.value) {
+    const { valid } = await formularioRef.value.validate()
+    if (!valid) return
+  } else if (!formularioValido.value) {
+    return
+  }
   guardando.value = true
   try {
     const payload = {

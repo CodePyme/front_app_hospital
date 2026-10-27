@@ -36,7 +36,7 @@
             <v-icon icon="mdi-account-multiple-outline" size="32" color="primary" />
             <div>
               <p class="text-caption text-medium-emphasis mb-0">Personal de plataforma</p>
-              <p class="text-h6 font-weight-bold mb-0 text-primary">{{ listaUsuarios.length }}</p>
+              <p class="text-h6 font-weight-bold mb-0 text-primary">{{ usuariosVisibles.length }}</p>
             </div>
           </v-card-text>
         </v-card>
@@ -59,7 +59,7 @@
             <div>
               <p class="text-caption text-medium-emphasis mb-0">Usuarios activos</p>
               <p class="text-h6 font-weight-bold mb-0 text-success">
-                {{ listaUsuarios.filter((u) => u.activo).length }}
+                {{ usuariosVisibles.filter((u) => u.activo).length }}
               </p>
             </div>
           </v-card-text>
@@ -597,7 +597,6 @@
             rounded="pill"
             class="text-none font-weight-bold px-5"
             :loading="guardando"
-            :disabled="!formularioValido"
             @click="guardarUsuario"
           >
             {{ esEdicion ? 'Actualizar Usuario' : 'Crear Usuario' }}
@@ -655,12 +654,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import LayoutPrincipal from '../../layouts/LayoutPrincipal.vue'
 import { servicioUsuarios } from '../../services/usuarios.service'
 import { servicioRoles } from '../../services/roles.service'
 import { servicioPermisos } from '../../services/permisos.service'
+import { useAlmacenAutenticacion } from '../../stores/autenticacion.store'
 import { usarAlertas } from '../../composables/usarAlertas'
+
+const almacenAuth = useAlmacenAutenticacion()
+const CORREO_SUPER_ADMIN = 'admin@codepyme.com'
+const esSuperAdmin = computed(
+  () => almacenAuth.usuario?.correoElectronico === CORREO_SUPER_ADMIN,
+)
 
 const { mostrarAlerta, confirmarEliminacion } = usarAlertas()
 
@@ -716,13 +722,22 @@ const rolesDisponiblesFiltro = computed(() => {
   return listaRoles.value.map((r) => ({ id: r.id, nombre: r.nombre }))
 })
 
+const usuariosVisibles = computed(() => {
+  return listaUsuarios.value.filter((u) => {
+    if (!esSuperAdmin.value && u.correoElectronico === CORREO_SUPER_ADMIN) {
+      return false
+    }
+    return true
+  })
+})
+
 const rolesUtilizados = computed(() => {
-  const setRoles = new Set(listaUsuarios.value.map((u) => u.rolId).filter(Boolean))
+  const setRoles = new Set(usuariosVisibles.value.map((u) => u.rolId).filter(Boolean))
   return setRoles.size
 })
 
 const usuariosFiltrados = computed(() => {
-  return listaUsuarios.value.filter((u) => {
+  return usuariosVisibles.value.filter((u) => {
     if (filtroRol.value && u.rolId !== filtroRol.value) return false
 
     if (!busqueda.value) return true
@@ -825,15 +840,20 @@ function abrirModalEditar(usuario) {
   const idsDirectos = (usuario.permisosDirectos || []).map((p) => p.id)
 
   formulario.value = {
-    nombres: usuario.nombres,
-    apellidos: usuario.apellidos,
-    correoElectronico: usuario.correoElectronico,
+    nombres: usuario.nombres || '',
+    apellidos: usuario.apellidos || '',
+    correoElectronico: usuario.correoElectronico || '',
     contrasena: '',
-    rolId: usuario.rolId,
-    activo: usuario.activo,
+    rolId: usuario.rolId || usuario.rolEntidad?.id || null,
+    activo: usuario.activo !== undefined ? usuario.activo : true,
     permisoIds: idsDirectos,
   }
   modalAbierto.value = true
+  nextTick(async () => {
+    if (formularioRef.value) {
+      await formularioRef.value.validate?.()
+    }
+  })
 }
 
 function cerrarModal() {
@@ -841,16 +861,22 @@ function cerrarModal() {
 }
 
 async function guardarUsuario() {
-  if (!formularioValido.value) return
+  if (formularioRef.value) {
+    const { valid } = await formularioRef.value.validate()
+    if (!valid) return
+  } else if (!formularioValido.value) {
+    return
+  }
+
   guardando.value = true
   try {
     const payload = {
-      nombres: formulario.value.nombres,
-      apellidos: formulario.value.apellidos,
-      correoElectronico: formulario.value.correoElectronico,
+      nombres: (formulario.value.nombres || '').trim(),
+      apellidos: (formulario.value.apellidos || '').trim(),
+      correoElectronico: (formulario.value.correoElectronico || '').trim(),
       rolId: formulario.value.rolId,
-      activo: formulario.value.activo,
-      permisoIds: formulario.value.permisoIds,
+      activo: Boolean(formulario.value.activo),
+      permisoIds: formulario.value.permisoIds || [],
     }
 
     if (formulario.value.contrasena && formulario.value.contrasena.trim().length >= 6) {

@@ -59,6 +59,19 @@ export function usarAlertas() {
     })
   }
 
+  function mostrarAlerta(tipo, titulo, mensaje) {
+    if (tipo === 'success') {
+      return mostrarExito(mensaje, titulo)
+    }
+    if (tipo === 'error') {
+      return mostrarError(mensaje, titulo)
+    }
+    if (tipo === 'warning') {
+      return mostrarAdvertencia(mensaje, titulo)
+    }
+    return mostrarInfo(mensaje, titulo)
+  }
+
   return {
     confirmarEliminacion,
     confirmarCancelacion,
@@ -66,5 +79,6 @@ export function usarAlertas() {
     mostrarError,
     mostrarAdvertencia,
     mostrarInfo,
+    mostrarAlerta,
   }
 }

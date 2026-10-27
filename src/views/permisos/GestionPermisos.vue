@@ -393,7 +393,6 @@
               class="text-none font-weight-bold px-5"
               type="submit"
               :loading="guardando"
-              :disabled="!formularioValido"
             >
               {{ esEdicion ? 'Actualizar' : 'Crear Permiso' }}
             </v-btn>
@@ -536,7 +535,12 @@ function cerrarModal() {
 }
 
 async function guardarPermiso() {
-  if (!formularioValido.value) return
+  if (formularioRef.value) {
+    const { valid } = await formularioRef.value.validate()
+    if (!valid) return
+  } else if (!formularioValido.value) {
+    return
+  }
   guardando.value = true
   try {
     if (esEdicion.value) {
