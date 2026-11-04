@@ -233,6 +233,7 @@ watch(
 
 const elementosMenu = [
   { nombre: 'dashboard', titulo: 'Inicio', icono: 'mdi-home-outline', ruta: '/', permiso: 'dashboard.ver' },
+  { nombre: 'mapa', titulo: 'Mapa Guía Hospital', icono: 'mdi-navigation-variant-outline', ruta: '/mapa' },
   { nombre: 'historia', titulo: 'Historia Clínica', icono: 'mdi-file-document-outline', ruta: '/historia', permiso: 'historia.ver' },
   { nombre: 'citas', titulo: 'Citas Médicas', icono: 'mdi-calendar-blank-outline', ruta: '/citas', permiso: 'citas.ver' },
   { nombre: 'resultados', titulo: 'Ayudas Diagnósticas', icono: 'mdi-pulse', ruta: '/resultados', permiso: 'resultados.ver' },

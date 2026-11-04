@@ -99,6 +99,19 @@
                 <v-icon size="16">mdi-map-marker-outline</v-icon>
                 <span>{{ citaDestacada.ubicacion }} {{ citaDestacada.descUnidadEdificio ? '- ' + citaDestacada.descUnidadEdificio : '' }}</span>
               </div>
+              <div v-if="citaDestacada.modoAtencion !== 'Virtual'" class="mt-2 text-center text-sm-left">
+                <v-btn
+                  size="x-small"
+                  variant="tonal"
+                  color="primary"
+                  rounded="pill"
+                  prepend-icon="mdi-navigation-variant"
+                  class="text-none font-weight-bold"
+                  to="/mapa"
+                >
+                  Cómo llegar (Mapa Waze)
+                </v-btn>
+              </div>
             </div>
 
             <!-- Icono decorativo -->
@@ -179,6 +192,14 @@ const serviciosDisponibles = [
     colorIcono: '#7c3aed',
     colorFondo: '#f5f3ff',
     ruta: '/resultados',
+  },
+  {
+    titulo: 'Guía Hospital (Waze)',
+    descripcion: 'Mapa interactivo y rutas paso a paso.',
+    icono: 'mdi-navigation-variant',
+    colorIcono: '#16a34a',
+    colorFondo: '#f0fdf4',
+    ruta: '/mapa',
   },
 ]
 

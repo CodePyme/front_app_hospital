@@ -60,6 +60,17 @@ const rutas = [
     component: () => import('../views/citas/DetalleCita.vue'),
     meta: { requiereAuth: true, permiso: 'citas.ver' },
   },
+  {
+    path: '/mapa',
+    name: 'mapa-hospital',
+    component: () => import('../views/mapa/MapaHospital.vue'),
+    meta: { requiereAuth: false },
+  },
+  {
+    path: '/como-llegar',
+    redirect: '/mapa',
+  },
+
 
   // Módulos de Administración (Plataforma)
   {
